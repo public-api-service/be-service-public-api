@@ -181,7 +181,7 @@ var defaultConfig = &Config{
 	Database: Database{
 		Host:              "localhost",
 		Port:              "3306",
-		Database:          "customer",
+		Database:          "public_api",
 		User:              "root",
 		Password:          "perindo",
 		PathMigrate:       "file:../db/migration",
