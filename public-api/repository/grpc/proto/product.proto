@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package product;
+option go_package = "./product";
+
+message ListKeyProductServiceRequest {
+  string id = 1;
+  string id_product = 2;
+  string number_keys = 3;
+  string status = 4;
+
+}
+
+message ListKeyProductServiceResponse {
+  int64 id = 1;
+  int64 id_product = 2;
+  string number_keys = 3;
+  string status = 4;
+}
+
+
+message ListKeyBulkResponse {
+  repeated ListKeyProductServiceResponse data = 1;
+}
+
+message UpdateListKeyStatusProductServiceRequest{
+  string ListID = 1;
+  string Status = 2;
+}
+
+message UpdateListKeyStatusProductServiceResponse{
+  string response = 1;
+}
+
+message ListKeyProductByProductIDAndLimitServiceRequest {
+  string id_product = 1;
+  string limit = 2;
+}
+
+message ProductIDRequestServiceRequest{
+  int64 id = 1;
+}
+
+message DetailProductServiceResponse{
+  int64 id = 1;
+  int64 product_id = 2;
+  string name = 3;
+  string sku = 4;
+  string tipe = 5;
+  string description = 6;
+  int64 stok = 7;
+  string duration = 8;
+  string price = 9;
+  string discount = 10;
+  string tax = 11;
+  string final_price = 12;
+  string dtm_crt = 13;
+  string dtm_up = 14;
+}
+
+service ProductService {
+  rpc GetListKeyProduct(ListKeyProductServiceRequest) returns (ListKeyBulkResponse) {};
+  rpc UpdateListKeyStatusProduct(UpdateListKeyStatusProductServiceRequest) returns (UpdateListKeyStatusProductServiceResponse) {};
+  rpc GetListKeyProductByProductIDAndLimit(ListKeyProductByProductIDAndLimitServiceRequest) returns (ListKeyBulkResponse) {};
+  rpc GetProductByID(ProductIDRequestServiceRequest) returns (DetailProductServiceResponse) {};
+}
