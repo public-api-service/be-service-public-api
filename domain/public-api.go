@@ -110,6 +110,8 @@ type RequestDataCustomer struct {
 type PublicAPIUseCase interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
+	GetProduct(ctx context.Context, request int) (response ProductResponseDTO, err error)
+	CheckStok(ctx context.Context, id int32) (err error)
 }
 
 type PublicAPIMySQLRepo interface {
@@ -129,5 +131,7 @@ type ProductGRPCRepo interface {
 
 type CustomerGRPCRepo interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
+	CheckStok(ctx context.Context, id int32) (err error)
+
 	// PostCustomer(ctx context.Context, request RequestDataCustomer) (err error)
 }

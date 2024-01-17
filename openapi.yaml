@@ -159,6 +159,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorBadRequest'
+  /check/stok/{id}:
+    get:
+      summary: List All Sales
+      description: List All Sales
+      tags:
+        - Transaction
+      security:
+        - OAuth2ClientCredentials:
+          - write_clients
+      parameters:
+        - name: id
+          in: path
+          description: ID Product Sales
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSuccessAuth'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
 components:
   schemas:
     RequestLogin:

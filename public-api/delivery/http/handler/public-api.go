@@ -91,3 +91,37 @@ func (ph *PublicHandler) PostCheckout(c *fiber.Ctx) (err error) {
 	// log.Info(input)
 	return c.SendStatus(200)
 }
+
+func (ph *PublicHandler) GetProduct(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		log.Error(err)
+		return helper.HttpSimpleResponse(c, fasthttp.StatusBadRequest)
+	}
+
+	res, err := ph.PublicAPIUseCase.GetProduct(c.Context(), int(id))
+
+	if err != nil {
+		if err.Error() == "Data not found" {
+			return c.Status(fasthttp.StatusOK).JSON(err.Error())
+		}
+		return helper.HttpSimpleResponse(c, fasthttp.StatusInternalServerError)
+
+	}
+
+	return c.Status(fasthttp.StatusOK).JSON(res)
+}
+
+func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		log.Error(err)
+		return helper.HttpSimpleResponse(c, fasthttp.StatusBadRequest)
+	}
+
+	err = ph.PublicAPIUseCase.CheckStok(c.Context(), int32(int(id)))
+	if err != nil {
+		return c.Status(fasthttp.StatusNotFound).SendString("Out of stok")
+	}
+	return c.SendStatus(fasthttp.StatusOK)
+}

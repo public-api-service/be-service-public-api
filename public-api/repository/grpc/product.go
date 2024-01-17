@@ -134,6 +134,8 @@ func (m *grpcRepositoryProduct) GetProductByID(ctx context.Context, request int6
 		Discount:    &discount,
 		Tax:         tax,
 		FinalPrice:  finalPrice,
+		DtmCrt:      res.DtmCrt,
+		DtmUpd:      res.DtmUp,
 	}
 	return
 }

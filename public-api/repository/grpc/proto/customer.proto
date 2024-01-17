@@ -32,10 +32,14 @@ message RequestProductIDAndLimit {
   string limit = 2;
 }
 
+message RequestCheckStok {
+  int32 product_id = 1;
+}
+
 service CustomerUseCaseService {
   rpc PostCustomer(RequestDataCustomer) returns (EmptyResponse);
   rpc PostCheckout(RequestDataCheckout) returns (EmptyResponse);
-  rpc CheckStok(RequestProductIDAndLimit) returns (EmptyResponse);
+  rpc CheckStok(RequestCheckStok) returns (EmptyResponse);
 }
 
 message EmptyResponse {}

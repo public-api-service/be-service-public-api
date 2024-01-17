@@ -59,3 +59,19 @@ func (m *grpcRepositoryCustomer) PostCheckout(ctx context.Context, req domain.Re
 
 	return
 }
+
+func (m *grpcRepositoryCustomer) CheckStok(ctx context.Context, req int32) (err error) {
+	conn, err := m.Pool.Get(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	client := grpcCustomer.NewCustomerUseCaseServiceClient(conn)
+	_, err = client.CheckStok(ctx, &grpcCustomer.RequestCheckStok{
+		ProductId: req,
+	})
+	if err != nil {
+		return err
+	}
+	return
+}

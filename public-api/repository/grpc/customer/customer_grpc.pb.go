@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type CustomerUseCaseServiceClient interface {
 	PostCustomer(ctx context.Context, in *RequestDataCustomer, opts ...grpc.CallOption) (*EmptyResponse, error)
 	PostCheckout(ctx context.Context, in *RequestDataCheckout, opts ...grpc.CallOption) (*EmptyResponse, error)
-	CheckStok(ctx context.Context, in *RequestProductIDAndLimit, opts ...grpc.CallOption) (*EmptyResponse, error)
+	CheckStok(ctx context.Context, in *RequestCheckStok, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
 type customerUseCaseServiceClient struct {
@@ -53,7 +53,7 @@ func (c *customerUseCaseServiceClient) PostCheckout(ctx context.Context, in *Req
 	return out, nil
 }
 
-func (c *customerUseCaseServiceClient) CheckStok(ctx context.Context, in *RequestProductIDAndLimit, opts ...grpc.CallOption) (*EmptyResponse, error) {
+func (c *customerUseCaseServiceClient) CheckStok(ctx context.Context, in *RequestCheckStok, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	out := new(EmptyResponse)
 	err := c.cc.Invoke(ctx, "/customer.CustomerUseCaseService/CheckStok", in, out, opts...)
 	if err != nil {
@@ -68,7 +68,7 @@ func (c *customerUseCaseServiceClient) CheckStok(ctx context.Context, in *Reques
 type CustomerUseCaseServiceServer interface {
 	PostCustomer(context.Context, *RequestDataCustomer) (*EmptyResponse, error)
 	PostCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error)
-	CheckStok(context.Context, *RequestProductIDAndLimit) (*EmptyResponse, error)
+	CheckStok(context.Context, *RequestCheckStok) (*EmptyResponse, error)
 	mustEmbedUnimplementedCustomerUseCaseServiceServer()
 }
 
@@ -82,7 +82,7 @@ func (UnimplementedCustomerUseCaseServiceServer) PostCustomer(context.Context, *
 func (UnimplementedCustomerUseCaseServiceServer) PostCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostCheckout not implemented")
 }
-func (UnimplementedCustomerUseCaseServiceServer) CheckStok(context.Context, *RequestProductIDAndLimit) (*EmptyResponse, error) {
+func (UnimplementedCustomerUseCaseServiceServer) CheckStok(context.Context, *RequestCheckStok) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckStok not implemented")
 }
 func (UnimplementedCustomerUseCaseServiceServer) mustEmbedUnimplementedCustomerUseCaseServiceServer() {
@@ -136,7 +136,7 @@ func _CustomerUseCaseService_PostCheckout_Handler(srv interface{}, ctx context.C
 }
 
 func _CustomerUseCaseService_CheckStok_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestProductIDAndLimit)
+	in := new(RequestCheckStok)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func _CustomerUseCaseService_CheckStok_Handler(srv interface{}, ctx context.Cont
 		FullMethod: "/customer.CustomerUseCaseService/CheckStok",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CustomerUseCaseServiceServer).CheckStok(ctx, req.(*RequestProductIDAndLimit))
+		return srv.(CustomerUseCaseServiceServer).CheckStok(ctx, req.(*RequestCheckStok))
 	}
 	return interceptor(ctx, in, info, handler)
 }
