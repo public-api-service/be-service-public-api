@@ -58,9 +58,59 @@ message DetailProductServiceResponse{
   string dtm_up = 14;
 }
 
+message RequestAdditionalData {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 id = 3;
+  int32 fk_1 = 4;
+  string fk_2 = 5;
+  string fk_3 = 6;
+  string name_search = 7;
+  string order = 8;
+  string sort = 9;
+  string custom_column = 10;
+}
+
+message MetaData {
+  uint32 total_data = 1;
+  uint32 total_page = 2;
+  uint32 page = 3;
+  uint32 limit = 4;
+  string sort = 5;
+  string order = 6;
+}
+
+message ProductDetail {
+  int64 id = 1;
+  int32 stok = 2;
+  string duration = 3;
+  double price = 4;
+  int32 tax = 5;
+  double final_price = 6;
+  // 'discount' is marked as optional because it is a pointer in Go
+  int32 discount = 7 [json_name = "discount"];
+}
+
+message ProductResponseDTO {
+  string id = 1;
+  string name = 2;
+  string sku = 3;
+  string tipe = 4;
+  string desc = 5;
+  repeated ProductDetail detail_product = 6;
+  string dtm_crt = 7 [json_name = "dtm_crt"];
+  string dtm_upd = 8;
+}
+
+message GetAllProductResponse {
+  MetaData meta_data = 1;
+  repeated ProductResponseDTO data = 2;
+}
+
 service ProductService {
   rpc GetListKeyProduct(ListKeyProductServiceRequest) returns (ListKeyBulkResponse) {};
   rpc UpdateListKeyStatusProduct(UpdateListKeyStatusProductServiceRequest) returns (UpdateListKeyStatusProductServiceResponse) {};
   rpc GetListKeyProductByProductIDAndLimit(ListKeyProductByProductIDAndLimitServiceRequest) returns (ListKeyBulkResponse) {};
   rpc GetProductByID(ProductIDRequestServiceRequest) returns (DetailProductServiceResponse) {};
+  rpc GetAllProduct(RequestAdditionalData) returns (GetAllProductResponse);
 }
