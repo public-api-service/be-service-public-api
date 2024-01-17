@@ -40,7 +40,8 @@ paths:
       tags:
         - Transaction
       security:
-        - bearerAuth: []
+        - OAuth2ClientCredentials:
+          - write_clients
       requestBody:
         required: true
         content:

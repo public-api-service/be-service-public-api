@@ -83,7 +83,32 @@ type AllProductResponseDTO struct {
 	DtmUpd        string          `json:"dtm_upd"`
 }
 
+type RequestDataCheckout struct {
+	Email            string  `json:"email" form:"email"`
+	Name             string  `json:"name" form:"name"`
+	PhoneNumber      string  `json:"phone_number" form:"phone_number"`
+	ProductSalesID   int     `json:"product_sales_id" form:"product_sales_id"`
+	QTY              int     `json:"qty" form:"qty"`
+	TotalPricing     int     `json:"total_pricing" form:"total_pricing"`
+	PaymentReference string  `json:"payment_reference" form:"payment_reference"`
+	PaymentDomain    string  `json:"payment_domain"`
+	CustomerID       int64   `json:"customer_id"`
+	ListKey          string  `json:"list_key"`
+	Invoice          string  `json:"invoice"`
+	TypeDuration     string  `json:"type_duration" form:"type_duration"`
+	Pricing          float64 `json:"pricing"`
+	Discount         float64 `json:"discount"`
+	Tax              float64 `json:"tax"`
+}
+
+type RequestDataCustomer struct {
+	Email       string `json:"email" form:"email"`
+	Name        string `json:"name" form:"name"`
+	PhoneNumber string `json:"phoneNumber" form:"phoneNumber"`
+}
+
 type PublicAPIUseCase interface {
+	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
 }
 
@@ -100,4 +125,9 @@ type ProductGRPCRepo interface {
 	GetListKeyProductByProductIDAndLimit(ctx context.Context, request RequestProductIDAndLimit) (response []GetKeyResponse, err error)
 	GetProductByID(ctx context.Context, request int64) (response ProductResponseDTO, err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
+}
+
+type CustomerGRPCRepo interface {
+	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
+	// PostCustomer(ctx context.Context, request RequestDataCustomer) (err error)
 }

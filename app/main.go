@@ -159,7 +159,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Info("Redis connection established")
-	var grpcPoolProduct *grpcpool.Pool
+	var grpcPoolProduct, grpcPoolCustomer *grpcpool.Pool
 	productConn := func() (client *grpc.ClientConn, err error) {
 		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.product_service.host"), viper.GetString("grpc.product_service.port"))
 		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -174,9 +174,24 @@ func main() {
 		log.Fatal(err)
 	}
 
+	customerConn := func() (client *grpc.ClientConn, err error) {
+		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.customer_service.host"), viper.GetString("grpc.customer_service.port"))
+		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	grpcPoolCustomer, err = grpcpool.New(customerConn, viper.GetInt("grpc.init"), viper.GetInt("grpc.capacity"), time.Duration(viper.GetInt("grpc.idle_duration"))*time.Second, time.Duration(viper.GetInt("grpc.max_life_duration"))*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Register GRPC
 	// repoGRPCAuth := _RepoGRPCAuth.NewGRPCAuthRepository(grpcPoolAuth)
 	repoGRPCProduct := _RepoGRPCPublicAPI.NewGRPCProductRepository(grpcPoolProduct)
+	repoGRPCCustomer := _RepoGRPCPublicAPI.NewGRPCCustomerRepository(grpcPoolCustomer)
 	// Register repository & usecase public API
 
 	repoMySQLPublicAPI := _RepoMySQLPublicAPI.NewMySQLPublicAPIRepository(dbConn)
@@ -198,7 +213,7 @@ func main() {
 		fmt.Println("Client Store :", store)
 	}
 	oAuthHttpInit := srv
-	usecasePublicAPI := _UsecasePublicAPI.NewPublicAPIUsecase(repoMySQLPublicAPI, repoGRPCProduct, oAuthHttpInit)
+	usecasePublicAPI := _UsecasePublicAPI.NewPublicAPIUsecase(repoMySQLPublicAPI, repoGRPCProduct, repoGRPCCustomer, oAuthHttpInit)
 	usecaseAuthorization := _UsecasePublicAPI.NewAuthorizationUsecase(repoMySQLAuthorization, oAuthHttpInit)
 	// serverAuth := _RepoGRPCAuthObject.NewGRPCAuth(usecaseAuth)
 	// Initialize gRPC server

@@ -19,15 +19,16 @@ func RouterAPI(app *fiber.App, PublicAPIUseCase domain.PublicAPIUseCase, Authori
 
 	basePath := viper.GetString("server.base_path")
 
-	product := app.Group(basePath)
+	publicAPI := app.Group(basePath)
 
-	product.Use(cors.New(cors.Config{
+	publicAPI.Use(cors.New(cors.Config{
 		AllowOrigins: viper.GetString("middleware.allows_origin"),
 	}))
 
 	log.Info(handlerPublicAPI)
 	// Public API Route
-	product.Get("/product", handlerAuthorization.TokenOauth(), handlerPublicAPI.GetAllProduct)
-	product.Post("b2b/token", adaptor.HTTPHandlerFunc(handlerAuthorization.PostTokenOAuth2))
+	publicAPI.Get("/product", handlerAuthorization.TokenOauth(), handlerPublicAPI.GetAllProduct)
+	publicAPI.Post("/checkout", handlerAuthorization.TokenOauth(), handlerPublicAPI.PostCheckout)
+	publicAPI.Post("b2b/token", adaptor.HTTPHandlerFunc(handlerAuthorization.PostTokenOAuth2))
 
 }

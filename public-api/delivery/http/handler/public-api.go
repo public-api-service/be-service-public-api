@@ -67,3 +67,27 @@ func (ph *PublicHandler) GetAllProduct(c *fiber.Ctx) error {
 
 	return c.Status(fasthttp.StatusOK).JSON(res)
 }
+
+func (ph *PublicHandler) PostCheckout(c *fiber.Ctx) (err error) {
+	var input domain.RequestDataCheckout
+	err = c.BodyParser(&input)
+	if err != nil {
+		log.Errorf(err.Error())
+		return helper.HttpSimpleResponse(c, fasthttp.StatusBadRequest)
+	}
+
+	err = ph.PublicAPIUseCase.PostCheckout(c.Context(), input)
+	if err != nil {
+		if err.Error() == "rpc error: code = Unknown desc = Stok not found" {
+			return c.Status(fasthttp.StatusBadRequest).SendString("Out of stok")
+		}
+
+		if err.Error() == "rpc error: code = Unknown desc = Your transaction not found" {
+			return c.Status(fasthttp.StatusBadRequest).SendString("Your transaction not found")
+		}
+		return err
+	}
+
+	// log.Info(input)
+	return c.SendStatus(200)
+}
