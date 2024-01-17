@@ -31,6 +31,6 @@ func RouterAPI(app *fiber.App, PublicAPIUseCase domain.PublicAPIUseCase, Authori
 	publicAPI.Post("/checkout", handlerAuthorization.TokenOauth(), handlerPublicAPI.PostCheckout)
 	publicAPI.Get("/product/:id", handlerAuthorization.TokenOauth(), handlerPublicAPI.GetProduct)
 	publicAPI.Post("b2b/token", adaptor.HTTPHandlerFunc(handlerAuthorization.PostTokenOAuth2))
-	publicAPI.Get("/check/stok/:id", handlerPublicAPI.CheckStok)
+	publicAPI.Get("/check/stok/:id", handlerAuthorization.TokenOauth(), handlerPublicAPI.CheckStok)
 
 }
