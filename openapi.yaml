@@ -11,28 +11,6 @@ servers:
     description: "staging development"
 
 paths:
-  /auth:
-    get:
-      summary: Authenticate User with Bearer Token
-      description: Authenticate user using a bearer token
-      tags:
-        - Authentication & Authorization
-      security:
-        - OAuth2ClientCredentials:
-          - write_clients
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseSuccessAuth'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
   /checkout:
     post:
       summary: Save customer data, and checkout
