@@ -23,8 +23,8 @@ type Config struct {
 }
 
 type GRPC struct {
-	AuthService    HostPort `yaml:"auth_service"`
-	ProductService HostPort `yaml:"product_service"`
+	CustomerService HostPort `yaml:"customer_service"`
+	ProductService  HostPort `yaml:"product_service"`
 }
 
 type HostPort struct {
@@ -181,7 +181,7 @@ var defaultConfig = &Config{
 	Database: Database{
 		Host:              "localhost",
 		Port:              "3306",
-		Database:          "customer",
+		Database:          "public_api",
 		User:              "root",
 		Password:          "perindo",
 		PathMigrate:       "file:../db/migration",
@@ -199,9 +199,9 @@ var defaultConfig = &Config{
 	},
 
 	GRPC: GRPC{
-		AuthService: HostPort{
+		CustomerService: HostPort{
 			Host: "localhost",
-			Port: "58882",
+			Port: "58884",
 		},
 		ProductService: HostPort{
 			Host: "localhost",

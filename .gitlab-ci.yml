@@ -1,0 +1,50 @@
+variables:
+  PROJECT_NAME: be-service-public-api
+  REPO_NAME: gitlab.com/luru-norton/be-service-public-api.git
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  cache:
+    key: ${PROJECT_NAME}
+    paths:
+      - ${PROJECT_NAME}
+  script:
+    - pwd
+    - make build
+    - echo "Built"
+  only:
+    - dev
+  tags:
+    - ssh
+
+deploy:
+  stage: deploy
+  dependencies:
+    - build
+  cache:
+    key: ${PROJECT_NAME}
+    paths:
+      - ${PROJECT_NAME}
+  script:
+    - ls -la
+    #- cp api-specification/openapi.yaml /var/www/html/swagger-ui/openapi-insurance-public-api.yaml
+    - cp db/migration/* /usr/local/etc/${PROJECT_NAME}-migration
+    - systemctl stop ${PROJECT_NAME}
+    - cp ${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+    - systemctl start ${PROJECT_NAME}
+    - echo "Deployed"
+  only:
+    - dev
+  tags:
+    - ssh

@@ -2,6 +2,7 @@ package main
 
 import (
 	"be-service-public-api/config"
+	"be-service-public-api/helper"
 	"context"
 	"database/sql"
 	"flag"
@@ -31,6 +32,11 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	errorrs "gopkg.in/oauth2.v3/errors"
+	manage "gopkg.in/oauth2.v3/manage"
+	modelsOAuth "gopkg.in/oauth2.v3/models"
+	serverOAuth "gopkg.in/oauth2.v3/server"
+	store "gopkg.in/oauth2.v3/store"
 )
 
 const (
@@ -84,6 +90,32 @@ func main() {
 		}
 	}()
 
+	// Initial OAuth2
+	manager := manage.NewDefaultManager()
+	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
+
+	// token memory store
+	manager.MustTokenStorage(store.NewMemoryTokenStore())
+
+	// client memory store
+	clientStore := store.NewClientStore()
+
+	manager.MapClientStorage(clientStore)
+
+	srv := serverOAuth.NewDefaultServer(manager)
+	srv.SetAllowGetAccessRequest(true)
+	srv.SetClientInfoHandler(serverOAuth.ClientFormHandler)
+	manager.SetRefreshTokenCfg(manage.DefaultRefreshTokenCfg)
+
+	srv.SetInternalErrorHandler(func(err error) (re *errorrs.Response) {
+		log.Println("Internal Error:", err.Error())
+		return
+	})
+
+	srv.SetResponseErrorHandler(func(re *errorrs.Response) {
+		log.Println("Response Error:", re.Error.Error())
+	})
+
 	// Migrate database if any new schema
 	driver, err := mysql.WithInstance(dbConn, &mysql.Config{})
 	if err == nil {
@@ -127,7 +159,7 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Info("Redis connection established")
-	var grpcPoolProduct *grpcpool.Pool
+	var grpcPoolProduct, grpcPoolCustomer *grpcpool.Pool
 	productConn := func() (client *grpc.ClientConn, err error) {
 		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.product_service.host"), viper.GetString("grpc.product_service.port"))
 		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -141,13 +173,48 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	customerConn := func() (client *grpc.ClientConn, err error) {
+		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.customer_service.host"), viper.GetString("grpc.customer_service.port"))
+		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	grpcPoolCustomer, err = grpcpool.New(customerConn, viper.GetInt("grpc.init"), viper.GetInt("grpc.capacity"), time.Duration(viper.GetInt("grpc.idle_duration"))*time.Second, time.Duration(viper.GetInt("grpc.max_life_duration"))*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Register GRPC
 	// repoGRPCAuth := _RepoGRPCAuth.NewGRPCAuthRepository(grpcPoolAuth)
 	repoGRPCProduct := _RepoGRPCPublicAPI.NewGRPCProductRepository(grpcPoolProduct)
+	repoGRPCCustomer := _RepoGRPCPublicAPI.NewGRPCCustomerRepository(grpcPoolCustomer)
 	// Register repository & usecase public API
 
 	repoMySQLPublicAPI := _RepoMySQLPublicAPI.NewMySQLPublicAPIRepository(dbConn)
-	usecasePublicAPI := _UsecasePublicAPI.NewPublicAPIUsecase(repoMySQLPublicAPI, repoGRPCProduct)
+	repoMySQLAuthorization := _RepoMySQLPublicAPI.NewMySQLAuthorizationRepository(dbConn)
+
+	recachingData, err := helper.RecachingB2BDataClient(repoMySQLAuthorization)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	for _, i := range recachingData {
+		store := clientStore.Set(i.ClientID, &modelsOAuth.Client{
+			ID:     i.ClientID,
+			Secret: i.ClientSecret,
+			Domain: i.Domain,
+		})
+
+		fmt.Println("Client Store :", store)
+	}
+	oAuthHttpInit := srv
+	usecasePublicAPI := _UsecasePublicAPI.NewPublicAPIUsecase(repoMySQLPublicAPI, repoGRPCProduct, repoGRPCCustomer, oAuthHttpInit)
+	usecaseAuthorization := _UsecasePublicAPI.NewAuthorizationUsecase(repoMySQLAuthorization, oAuthHttpInit)
 	// serverAuth := _RepoGRPCAuthObject.NewGRPCAuth(usecaseAuth)
 	// Initialize gRPC server
 	go func() {
@@ -181,7 +248,7 @@ func main() {
 		return c.SendString("Hello, World!")
 	})
 
-	_DeliveryHTTP.RouterAPI(app, usecasePublicAPI)
+	_DeliveryHTTP.RouterAPI(app, usecasePublicAPI, usecaseAuthorization)
 
 	// Start Fiber HTTP server
 	if err := app.Listen(":" + viper.GetString("server.port")); err != nil {
