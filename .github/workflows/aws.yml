@@ -1,0 +1,42 @@
+name: Deploy to AWS
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: |
+          make build
+          echo "Built"
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    env:
+      PROJECT_NAME: be-service-public-api
+    steps:      
+      - name: Deploy
+        run: |
+          ls -la
+          sudo cp db/migration/* /usr/local/etc/${PROJECT_NAME}-migration
+          sudo systemctl stop ${PROJECT_NAME}
+          sudo cp ${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+          sudo systemctl start ${PROJECT_NAME}
+          echo "Deploying..."
+          # Add your deployment steps here
