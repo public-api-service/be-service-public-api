@@ -125,3 +125,76 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 	}
 	return c.SendStatus(fasthttp.StatusOK)
 }
+func (ph *PublicHandler) BlackHawk(c *fiber.Ctx) (err error) {
+	response := domain.ResponseBlackHawk{
+		Header: domain.ResponseHeaderDetailBlackHawk{
+			Detail: domain.ResponseHeaderContentBlackHawk{
+				ProductCategoryCode: "01",
+				SpecVersion:         "46",
+				StatusCode:          "00",
+			},
+			Signature: "BHNUMS",
+		},
+
+		Transaction: domain.ResponseTransactionBlackHawk{
+			AcquiringInstitutionIdentifier: "60300000063",
+			AdditionalTxnFields: domain.ResponseAdditionalTxnFieldsTransactionBlackHawk{
+				ActivationAccountNumber:       "6039537201000000000",
+				BalanceAmount:                 "C000000002500",
+				CorrelatedTransactionUniqueId: "9WKNNBT0QBGTWWNW0DJBSPRYZ4",
+				ExpiryDate:                    "491201",
+				PaymentDetails: domain.ResponsePaymentBlackHawk{
+					PaymentDetail: domain.ResponsePaymentDetailBlackHawk{
+						PaymentMode: "051",
+						TenderType:  "Credit Card",
+					},
+				},
+				ProductId:               "07675004390",
+				RedemptionAccountNumber: "XXBNC5HR7ZPN43GQ",
+				RedemptionPin:           "1234      ",
+				TransactionUniqueId:     "9WKNNBT0QBGTWWNW0DJBSPRYZ4",
+			},
+			AuthIdentificationResponse: "123456",
+			LocalTransactionDate:       "230414",
+			LocalTransactionTime:       "082515",
+			MerchantCategoryCode:       "5411",
+			MerchantIdentifier:         "60300000063    ",
+			MerchantTerminalId:         "06220     900   ",
+			PointOfServiceEntryMode:    "011",
+			PrimaryAccountNumber:       "9877890000000000",
+			ProcessingCode:             "745400",
+			ReceiptsFields: domain.ResponseReceiptsFieldsBlackHawk{
+				Lines: []string{
+					"StoreId : 06220",
+					"Address : BLACKHAWK SIM-jlee126",
+					"City : PLEASANTON CA",
+					"State :  US",
+					"LocalTxnDate : 04/14/23",
+					"LocalTxnTime : 082515",
+					"Denomination : 25.00",
+					"PINNumber : XXBNC5HR7ZPN43GQ",
+					"PhoneNumber : 1-888-BHN-HELP",
+					"SequenceNumber : 000000661586",
+					"AccountBalance : 25.00",
+					"ShortGUID : BSPRYZ4",
+					"RedemptionPIN : 1234",
+					"ActivationNum : 6039537201000000000",
+					"DigitalExpDate : 491201",
+					"AddtnlData :",
+				},
+			},
+			ResponseCode:             "00",
+			RetrievalReferenceNumber: "000000661586",
+			SystemTraceAuditNumber:   "499180",
+			TermsAndConditions:       "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety-nine (999). Terms and Conditions will be displayed here.",
+			TransactionAmount:        "000000002500",
+			TransactionCurrencyCode:  "840",
+			TransmissionDateTime:     "230414082515",
+		},
+	}
+
+	fullResponse := map[string]interface{}{
+		"response": response,
+	}
+	return c.Status(fiber.StatusOK).JSON(fullResponse)
+}

@@ -107,6 +107,68 @@ type RequestDataCustomer struct {
 	PhoneNumber string `json:"phoneNumber" form:"phoneNumber"`
 }
 
+type ResponseBlackHawk struct {
+	Header      ResponseHeaderDetailBlackHawk `json:"header"`
+	Transaction ResponseTransactionBlackHawk  `json:"transaction"`
+}
+
+type ResponseHeaderDetailBlackHawk struct {
+	Detail    ResponseHeaderContentBlackHawk `json:"detail"`
+	Signature string                         `json:"signature"`
+}
+
+type ResponseHeaderContentBlackHawk struct {
+	ProductCategoryCode string `json:"productCategoryCode"`
+	SpecVersion         string `json:"specVersion"`
+	StatusCode          string `json:"statusCode"`
+}
+
+type ResponseTransactionBlackHawk struct {
+	AcquiringInstitutionIdentifier string                                          `json:"acquiringInstitutionIdentifier"`
+	AdditionalTxnFields            ResponseAdditionalTxnFieldsTransactionBlackHawk `json:"additionalTxnFields"`
+	AuthIdentificationResponse     string                                          `json:"authIdentificationResponse"`
+	LocalTransactionDate           string                                          `json:"localTransactionDate"`
+	LocalTransactionTime           string                                          `json:"localTransactionTime"`
+	MerchantCategoryCode           string                                          `json:"merchantCategoryCode"`
+	MerchantIdentifier             string                                          `json:"merchantIdentifier"`
+	MerchantTerminalId             string                                          `json:"merchantTerminalId"`
+	PointOfServiceEntryMode        string                                          `json:"pointOfServiceEntryMode"`
+	PrimaryAccountNumber           string                                          `json:"primaryAccountNumber"`
+	ProcessingCode                 string                                          `json:"processingCode"`
+	ReceiptsFields                 ResponseReceiptsFieldsBlackHawk                 `json:"receiptsFields"`
+	ResponseCode                   string                                          `json:"responseCode"`
+	RetrievalReferenceNumber       string                                          `json:"retrievalReferenceNumber"`
+	SystemTraceAuditNumber         string                                          `json:"systemTraceAuditNumber"`
+	TermsAndConditions             string                                          `json:"termsAndConditions"`
+	TransactionAmount              string                                          `json:"transactionAmount"`
+	TransactionCurrencyCode        string                                          `json:"transactionCurrencyCode"`
+	TransmissionDateTime           string                                          `json:"transmissionDateTime"`
+}
+
+type ResponseAdditionalTxnFieldsTransactionBlackHawk struct {
+	ProductId                     string                   `json:"productId"`
+	BalanceAmount                 string                   `json:"balanceAmount"`
+	RedemptionPin                 string                   `json:"redemptionPin"`
+	RedemptionAccountNumber       string                   `json:"redemptionAccountNumber"`
+	ActivationAccountNumber       string                   `json:"activationAccountNumber"`
+	ExpiryDate                    string                   `json:"expiryDate"`
+	TransactionUniqueId           string                   `json:"transactionUniqueId"`
+	CorrelatedTransactionUniqueId string                   `json:"correlatedTransactionUniqueId"`
+	PaymentDetails                ResponsePaymentBlackHawk `json:"paymentDetails"`
+}
+
+type ResponsePaymentBlackHawk struct {
+	PaymentDetail ResponsePaymentDetailBlackHawk `json:"paymentDetail1"`
+}
+
+type ResponsePaymentDetailBlackHawk struct {
+	PaymentMode string `json:"paymentMode"`
+	TenderType  string `json:"tenderType"`
+}
+
+type ResponseReceiptsFieldsBlackHawk struct {
+	Lines []string `json:"lines"`
+}
 type PublicAPIUseCase interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)

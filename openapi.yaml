@@ -166,6 +166,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorUnauthorized'
+  /blackhawk:
+    post:
+      summary: Get Response Black Hawk
+      description: Get Response Black Hawk
+      tags:
+        - 3rdPart Black Hawk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestBlackHawk'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSuccessAuth'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
 components:
   schemas:
     RequestLogin:
@@ -253,6 +278,95 @@ components:
         - payment_reference
         - type_duration
         # - status
+    RequestBlackHawk:
+      type: object
+      properties:
+        header:
+          type: object
+          properties:
+            signature:
+              type: string
+            details:
+              type: object
+              properties:
+                productCategoryCode:
+                  type: string
+                specVersion:
+                  type: string
+          required:
+            - signature
+            - details
+        transaction:
+          type: object
+          properties:
+            primaryAccountNumber:
+              type: string
+            processingCode:
+              type: string
+            transactionAmount:
+              type: string
+            transmissionDateTime:
+              type: string
+            systemTraceAuditNumber:
+              type: string
+            localTransactionTime:
+              type: string
+            localTransactionDate:
+              type: string
+            merchantCategoryCode:
+              type: string
+            pointOfServiceEntryMode:
+              type: string
+            acquiringInstitutionIdentifier:
+              type: string
+            retrievalReferenceNumber:
+              type: string
+            merchantTerminalId:
+              type: string
+            merchantIdentifier:
+              type: string
+            merchantLocation:
+              type: string
+            transactionCurrencyCode:
+              type: string
+            additionalTxnFields:
+              type: object
+              properties:
+                productId:
+                  type: string
+                paymentDetails:
+                  type: object
+                  properties:
+                    paymentDetail1:
+                      type: object
+                      properties:
+                        tenderType:
+                          type: string
+                        paymentMode:
+                          type: string
+              required:
+                - productId
+                - paymentDetails
+          required:
+            - primaryAccountNumber
+            - processingCode
+            - transactionAmount
+            - transmissionDateTime
+            - systemTraceAuditNumber
+            - localTransactionTime
+            - localTransactionDate
+            - merchantCategoryCode
+            - pointOfServiceEntryMode
+            - acquiringInstitutionIdentifier
+            - retrievalReferenceNumber
+            - merchantTerminalId
+            - merchantIdentifier
+            - merchantLocation
+            - transactionCurrencyCode
+            - additionalTxnFields
+      required:
+        - header
+        - transaction
   securitySchemes:
     OAuth2ClientCredentials:
       type: oauth2
