@@ -118,47 +118,82 @@ type ResponseHeaderDetailBlackHawk struct {
 }
 
 type ResponseHeaderContentBlackHawk struct {
-	ProductCategoryCode string `json:"productCategoryCode"`
-	SpecVersion         string `json:"specVersion"`
-	StatusCode          string `json:"statusCode"`
+	ProductCategoryCode string `json:"productCategoryCode,omitempty"`
+	SpecVersion         string `json:"specVersion,omitempty"`
+	StatusCode          string `json:"statusCode,omitempty"`
 }
 
 type ResponseTransactionBlackHawk struct {
-	AcquiringInstitutionIdentifier string                                          `json:"acquiringInstitutionIdentifier"`
-	AdditionalTxnFields            ResponseAdditionalTxnFieldsTransactionBlackHawk `json:"additionalTxnFields"`
-	AuthIdentificationResponse     string                                          `json:"authIdentificationResponse"`
-	LocalTransactionDate           string                                          `json:"localTransactionDate"`
-	LocalTransactionTime           string                                          `json:"localTransactionTime"`
-	MerchantCategoryCode           string                                          `json:"merchantCategoryCode"`
-	MerchantIdentifier             string                                          `json:"merchantIdentifier"`
-	MerchantTerminalId             string                                          `json:"merchantTerminalId"`
-	PointOfServiceEntryMode        string                                          `json:"pointOfServiceEntryMode"`
-	PrimaryAccountNumber           string                                          `json:"primaryAccountNumber"`
-	ProcessingCode                 string                                          `json:"processingCode"`
-	ReceiptsFields                 ResponseReceiptsFieldsBlackHawk                 `json:"receiptsFields"`
-	ResponseCode                   string                                          `json:"responseCode"`
-	RetrievalReferenceNumber       string                                          `json:"retrievalReferenceNumber"`
-	SystemTraceAuditNumber         string                                          `json:"systemTraceAuditNumber"`
-	TermsAndConditions             string                                          `json:"termsAndConditions"`
-	TransactionAmount              string                                          `json:"transactionAmount"`
-	TransactionCurrencyCode        string                                          `json:"transactionCurrencyCode"`
-	TransmissionDateTime           string                                          `json:"transmissionDateTime"`
+	AcquiringInstitutionIdentifier string                                          `json:"acquiringInstitutionIdentifier,omitempty"`
+	AdditionalTxnFields            ResponseAdditionalTxnFieldsTransactionBlackHawk `json:"additionalTxnFields,omitempty"`
+	AuthIdentificationResponse     string                                          `json:"authIdentificationResponse,omitempty"`
+	LocalTransactionDate           string                                          `json:"localTransactionDate,omitempty"`
+	LocalTransactionTime           string                                          `json:"localTransactionTime,omitempty"`
+	MerchantCategoryCode           string                                          `json:"merchantCategoryCode,omitempty"`
+	MerchantIdentifier             string                                          `json:"merchantIdentifier,omitempty"`
+	MerchantTerminalId             string                                          `json:"merchantTerminalId,omitempty"`
+	PointOfServiceEntryMode        string                                          `json:"pointOfServiceEntryMode,omitempty"`
+	PrimaryAccountNumber           string                                          `json:"primaryAccountNumber,omitempty"`
+	ProcessingCode                 string                                          `json:"processingCode,omitempty"`
+	ReceiptsFields                 ResponseReceiptsFieldsBlackHawk                 `json:"receiptsFields,omitempty"`
+	ResponseCode                   string                                          `json:"responseCode,omitempty"`
+	RetrievalReferenceNumber       string                                          `json:"retrievalReferenceNumber,omitempty"`
+	SystemTraceAuditNumber         string                                          `json:"systemTraceAuditNumber,omitempty"`
+	TermsAndConditions             string                                          `json:"termsAndConditions,omitempty"`
+	TransactionAmount              string                                          `json:"transactionAmount,omitempty"`
+	TransactionCurrencyCode        string                                          `json:"transactionCurrencyCode,omitempty"`
+	TransmissionDateTime           string                                          `json:"transmissionDateTime,omitempty"`
 }
 
 type ResponseAdditionalTxnFieldsTransactionBlackHawk struct {
-	ProductId                     string                   `json:"productId"`
-	BalanceAmount                 string                   `json:"balanceAmount"`
-	RedemptionPin                 string                   `json:"redemptionPin"`
-	RedemptionAccountNumber       string                   `json:"redemptionAccountNumber"`
-	ActivationAccountNumber       string                   `json:"activationAccountNumber"`
-	ExpiryDate                    string                   `json:"expiryDate"`
-	TransactionUniqueId           string                   `json:"transactionUniqueId"`
-	CorrelatedTransactionUniqueId string                   `json:"correlatedTransactionUniqueId"`
-	PaymentDetails                ResponsePaymentBlackHawk `json:"paymentDetails"`
+	ProductId                     string `json:"productId,omitempty"`
+	BalanceAmount                 string `json:"balanceAmount,omitempty"`
+	RedemptionPin                 string `json:"redemptionPin,omitempty"`
+	RedemptionAccountNumber       string `json:"redemptionAccountNumber,omitempty"`
+	ActivationAccountNumber       string `json:"activationAccountNumber,omitempty"`
+	ExpiryDate                    string `json:"expiryDate,omitempty"`
+	TransactionUniqueId           string `json:"transactionUniqueId,omitempty"`
+	CorrelatedTransactionUniqueId string `json:"correlatedTransactionUniqueId,omitempty"`
 }
 
-type ResponsePaymentBlackHawk struct {
-	PaymentDetail ResponsePaymentDetailBlackHawk `json:"paymentDetail1"`
+type JsonRequest struct {
+	Header      Header      `json:"header"`
+	Transaction Transaction `json:"transaction"`
+}
+
+type Header struct {
+	Signature string     `json:"signature"`
+	Details   DetailInfo `json:"details"`
+}
+
+type DetailInfo struct {
+	ProductCategoryCode string `json:"productCategoryCode"`
+	SpecVersion         string `json:"specVersion"`
+}
+
+type Transaction struct {
+	PrimaryAccountNumber     string           `json:"primaryAccountNumber"`
+	ProcessingCode           string           `json:"processingCode"`
+	TransactionAmount        string           `json:"transactionAmount"`
+	TransmissioDateTime      string           `json:"transmissionDateTime"`
+	SystemTraceAuditNumber   string           `json:"systemTraceAuditNumber"`
+	LocalTransactionTime     string           `json:"localTransactionTime"`
+	LocalTransactionDate     string           `json:"localTransactionDate"`
+	MerchantCategoryCode     string           `json:"merchantCategoryCode"`
+	PointOfServiceEntryMode  string           `json:"pointOfServiceEntryMode"`
+	AcquiringInstitutionID   string           `json:"acquiringInstitutionIdentifier"`
+	RetrievalReferenceNumber string           `json:"retrievalReferenceNumber"`
+	MerchantTerminalID       string           `json:"merchantTerminalId"`
+	MerchantID               string           `json:"merchantIdentifier"`
+	MerchantLocation         string           `json:"merchantLocation"`
+	TransactionCurrencyCode  string           `json:"transactionCurrencyCode"`
+	AdditionalTxnFields      AdditionalFields `json:"additionalTxnFields"`
+}
+
+type AdditionalFields struct {
+	ProductId                     string `json:"productId"`
+	TransactionUniqueId           string `json:"transactionUniqueId"`
+	CorrelatedTransactionUniqueId string `json:"correlatedTransactionUniqueId"`
 }
 
 type ResponsePaymentDetailBlackHawk struct {

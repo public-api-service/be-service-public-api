@@ -166,10 +166,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorUnauthorized'
-  /blackhawk:
+  /acoount/request:
     post:
-      summary: Get Response Black Hawk
-      description: Get Response Black Hawk
+      summary: Post Original Digital Account Request
+      description: Post Original Digital Account Request
       tags:
         - 3rdPart Black Hawk
       requestBody:
@@ -177,7 +177,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RequestBlackHawk'
+              $ref: '#/components/schemas/RequestDigitalAccountOriginal'
       responses:
         '200':
           description: Success
@@ -278,7 +278,7 @@ components:
         - payment_reference
         - type_duration
         # - status
-    RequestBlackHawk:
+    RequestDigitalAccountOriginal:
       type: object
       properties:
         header:
@@ -334,16 +334,10 @@ components:
               properties:
                 productId:
                   type: string
-                paymentDetails:
-                  type: object
-                  properties:
-                    paymentDetail1:
-                      type: object
-                      properties:
-                        tenderType:
-                          type: string
-                        paymentMode:
-                          type: string
+                transactionUniqueId:
+                  type: string
+                correlatedTransactionUniqueId:
+                  type: string
               required:
                 - productId
                 - paymentDetails
