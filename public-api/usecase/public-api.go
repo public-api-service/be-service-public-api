@@ -65,8 +65,8 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 	return
 }
 
-func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.JsonRequest) (response domain.ResponseAdditionalTxnFieldsTransactionBlackHawk, err error) {
-	productID, err := strconv.ParseInt(request.Transaction.AdditionalTxnFields.ProductId, 10, 64)
+func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request string) (response domain.AdditionalFields, err error) {
+	productID, err := strconv.ParseInt(request, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal
 		fmt.Println("Error converting ProductID:", err)
@@ -78,7 +78,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.J
 	}
 
 	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
-		ProductID: request.Transaction.AdditionalTxnFields.ProductId,
+		ProductID: request,
 		Limit:     "1",
 	})
 
@@ -87,20 +87,25 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.J
 		return response, err
 	}
 
-	var paramIDJoinStr string
+	var paramIDJoinStr, paramKeyNumberStr string
 	for _, v := range res {
 		paramIDJoinStr += strconv.Itoa(int(v.ID)) + ","
+		paramKeyNumberStr += v.NumberKeys + ","
 	}
 
 	if len(paramIDJoinStr) > 0 {
 		paramIDJoinStr = paramIDJoinStr[:len(paramIDJoinStr)-1]
 	}
 
+	if len(paramKeyNumberStr) > 0 {
+		paramKeyNumberStr = paramKeyNumberStr[:len(paramKeyNumberStr)-1]
+	}
+
 	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
 		ProductID: paramIDJoinStr,
 	})
 
-	response.ActivationAccountNumber = paramIDJoinStr
+	response.ActivationAccountNumber = paramKeyNumberStr
 	response.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
 	response.RedemptionAccountNumber = resProduct.SKU
 
