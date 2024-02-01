@@ -3,6 +3,10 @@ package usecase
 import (
 	"be-service-public-api/domain"
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/labstack/gommon/log"
 	serveroauth2 "gopkg.in/oauth2.v3/server"
@@ -58,5 +62,65 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 	if err != nil {
 		return err
 	}
+	return
+}
+
+func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.JsonRequest) (response domain.ResponseAdditionalTxnFieldsTransactionBlackHawk, err error) {
+	productID, err := strconv.ParseInt(request.Transaction.AdditionalTxnFields.ProductId, 10, 64)
+	if err != nil {
+		// Handle kesalahan jika konversi gagal
+		fmt.Println("Error converting ProductID:", err)
+		return
+	}
+	resProduct, err := pu.productGRPCRepo.GetProductByID(ctx, productID)
+	if err != nil {
+		return response, err
+	}
+
+	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
+		ProductID: request.Transaction.AdditionalTxnFields.ProductId,
+		Limit:     "1",
+	})
+
+	if err != nil {
+		log.Error(err)
+		return response, err
+	}
+
+	var paramIDJoinStr string
+	for _, v := range res {
+		paramIDJoinStr += strconv.Itoa(int(v.ID)) + ","
+	}
+
+	if len(paramIDJoinStr) > 0 {
+		paramIDJoinStr = paramIDJoinStr[:len(paramIDJoinStr)-1]
+	}
+
+	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
+		ProductID: paramIDJoinStr,
+	})
+
+	response.ActivationAccountNumber = paramIDJoinStr
+	response.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
+	response.RedemptionAccountNumber = resProduct.SKU
+
+	parts := strings.Fields(resProduct.Duration)
+	number, _ := strconv.Atoi(parts[0])
+	unit := parts[1]
+	currentTime := time.Now()
+	var expired time.Time
+
+	if unit == "bulan" {
+		expired = currentTime.AddDate(0, number, 0)
+	} else {
+		expired = currentTime.AddDate(number, 0, 0)
+	}
+
+	response.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+
+	if err != nil {
+		return response, err
+	}
+
 	return
 }

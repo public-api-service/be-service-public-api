@@ -42,6 +42,11 @@ func (m *grpcRepositoryProduct) GetListKeyProductByProductIDAndLimit(ctx context
 		return nil, err
 	}
 
+	if productGRPC.Data == nil {
+		err = errors.New("Data not found")
+		return
+	}
+
 	var productResponse []domain.GetKeyResponse
 	for _, grpcResp := range productGRPC.Data {
 		responseItem := domain.GetKeyResponse{
