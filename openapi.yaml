@@ -166,7 +166,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorUnauthorized'
-  /acoount/request:
+  /transaction:
     post:
       summary: Post Original Digital Account Request
       description: Post Original Digital Account Request
