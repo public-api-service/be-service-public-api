@@ -120,7 +120,6 @@ type ResponseHeaderDetailBlackHawk struct {
 type ResponseHeaderContentBlackHawk struct {
 	ProductCategoryCode string `json:"productCategoryCode,omitempty"`
 	SpecVersion         string `json:"specVersion,omitempty"`
-	StatusCode          string `json:"statusCode,omitempty"`
 }
 
 type ResponseTransactionBlackHawk struct {
@@ -134,26 +133,24 @@ type ResponseTransactionBlackHawk struct {
 	MerchantTerminalId             string                                          `json:"merchantTerminalId,omitempty"`
 	PointOfServiceEntryMode        string                                          `json:"pointOfServiceEntryMode,omitempty"`
 	PrimaryAccountNumber           string                                          `json:"primaryAccountNumber,omitempty"`
-	ProcessingCode                 string                                          `json:"processingCode,omitempty"`
-	ReceiptsFields                 ResponseReceiptsFieldsBlackHawk                 `json:"receiptsFields,omitempty"`
-	ResponseCode                   string                                          `json:"responseCode,omitempty"`
+	ProcessingCode                 string                                          `json:"responseCode,omitempty"`
 	RetrievalReferenceNumber       string                                          `json:"retrievalReferenceNumber,omitempty"`
-	SystemTraceAuditNumber         string                                          `json:"systemTraceAuditNumber,omitempty"`
-	TermsAndConditions             string                                          `json:"termsAndConditions,omitempty"`
+	SystemTraceAuditNumber         string                                          `json:"termsAndConditions,omitempty"`
 	TransactionAmount              string                                          `json:"transactionAmount,omitempty"`
 	TransactionCurrencyCode        string                                          `json:"transactionCurrencyCode,omitempty"`
 	TransmissionDateTime           string                                          `json:"transmissionDateTime,omitempty"`
+	MerchantLocation               string
 }
 
 type ResponseAdditionalTxnFieldsTransactionBlackHawk struct {
-	ProductId                     string `json:"productId,omitempty"`
-	BalanceAmount                 string `json:"balanceAmount,omitempty"`
-	RedemptionPin                 string `json:"redemptionPin,omitempty"`
-	RedemptionAccountNumber       string `json:"redemptionAccountNumber,omitempty"`
-	ActivationAccountNumber       string `json:"activationAccountNumber,omitempty"`
-	ExpiryDate                    string `json:"expiryDate,omitempty"`
-	TransactionUniqueId           string `json:"transactionUniqueId,omitempty"`
-	CorrelatedTransactionUniqueId string `json:"correlatedTransactionUniqueId,omitempty"`
+	ProductId                     string `json:"productId"`
+	BalanceAmount                 string `json:"balanceAmount"`
+	RedemptionPin                 string `json:"redemptionPin"`
+	RedemptionAccountNumber       string `json:"redemptionAccountNumber"`
+	ActivationAccountNumber       string `json:"activationAccountNumber"`
+	ExpiryDate                    string `json:"expiryDate"`
+	TransactionUniqueId           string `json:"transactionUniqueId"`
+	CorrelatedTransactionUniqueId string `json:"correlatedTransactionUniqueId"`
 }
 
 type JsonRequest struct {
@@ -201,14 +198,12 @@ type ResponsePaymentDetailBlackHawk struct {
 	TenderType  string `json:"tenderType"`
 }
 
-type ResponseReceiptsFieldsBlackHawk struct {
-	Lines []string `json:"lines"`
-}
 type PublicAPIUseCase interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
 	GetProduct(ctx context.Context, request int) (response ProductResponseDTO, err error)
 	CheckStok(ctx context.Context, id int32) (err error)
+	AccountRequest(ctx context.Context, request JsonRequest) (response ResponseAdditionalTxnFieldsTransactionBlackHawk, err error)
 }
 
 type PublicAPIMySQLRepo interface {
