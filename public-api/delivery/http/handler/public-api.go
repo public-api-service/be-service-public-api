@@ -3,6 +3,8 @@ package handler
 import (
 	"be-service-public-api/domain"
 	"be-service-public-api/helper"
+	"encoding/json"
+	"regexp"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -126,14 +128,66 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 	return c.SendStatus(fasthttp.StatusOK)
 }
 
+// func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
+// 	var request domain.JsonRequest
+// 	if err := c.BodyParser(&request); err != nil {
+// 		log.Println(err)
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
+// 	}
+
+// 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), request)
+// 	if err != nil {
+// 		log.Error("Error get key : ", err)
+// 		if err.Error() == "Data not found" {
+// 			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+// 		}
+// 		return err
+// 	}
+
+// 	// log.Info(res)
+
+// 	additionalFields := domain.AdditionalFields{
+// 		ActivationAccountNumber:       res.ActivationAccountNumber,
+// 		BalanceAmount:                 res.BalanceAmount,
+// 		CorrelatedTransactionUniqueId: request.Transaction.AdditionalTxnFields.CorrelatedTransactionUniqueId,
+// 		ExpiryDate:                    res.ExpiryDate,
+// 		ProductId:                     request.Transaction.AdditionalTxnFields.ProductId,
+// 		RedemptionAccountNumber:       res.RedemptionAccountNumber,
+// 		RedemptionPin:                 "1234",
+// 		TransactionUniqueId:           request.Transaction.AdditionalTxnFields.TransactionUniqueId,
+// 	}
+
+// 	response := request
+// 	response.Transaction.AdditionalTxnFields = additionalFields
+
+// 	fullResponse := map[string]interface{}{
+// 		"response": response,
+// 	}
+// 	return c.Status(fiber.StatusOK).JSON(fullResponse)
+// }
+
 func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
-	var request domain.JsonRequest
+	var request map[string]interface{}
 	if err := c.BodyParser(&request); err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 	}
 
-	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), request)
+	jsonString, err := json.Marshal(request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+	}
+
+	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
+	matches := productIDRegex.FindStringSubmatch(string(jsonString))
+	if len(matches) != 2 {
+		log.Println("Failed to extract productID")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
+	}
+	productID := matches[1]
+
+	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), productID)
 	if err != nil {
 		log.Error("Error get key : ", err)
 		if err.Error() == "Data not found" {
@@ -142,49 +196,19 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		return err
 	}
 
-	log.Info(res)
+	// log.Info(res)
 
-	response := domain.ResponseBlackHawk{
-		Header: domain.ResponseHeaderDetailBlackHawk{
-			Detail: domain.ResponseHeaderContentBlackHawk{
-				ProductCategoryCode: request.Header.Details.ProductCategoryCode,
-				SpecVersion:         request.Header.Details.SpecVersion,
-			},
-			Signature: request.Header.Signature,
-		},
-
-		Transaction: domain.ResponseTransactionBlackHawk{
-			PrimaryAccountNumber:           request.Transaction.PrimaryAccountNumber,
-			ProcessingCode:                 request.Transaction.ProcessingCode,
-			TransactionAmount:              request.Transaction.TransactionAmount,
-			TransmissionDateTime:           request.Transaction.TransmissioDateTime,
-			SystemTraceAuditNumber:         request.Transaction.SystemTraceAuditNumber,
-			LocalTransactionTime:           request.Transaction.LocalTransactionTime,
-			LocalTransactionDate:           request.Transaction.LocalTransactionDate,
-			MerchantCategoryCode:           request.Transaction.MerchantCategoryCode,
-			PointOfServiceEntryMode:        request.Transaction.PointOfServiceEntryMode,
-			AcquiringInstitutionIdentifier: request.Transaction.AcquiringInstitutionID,
-			RetrievalReferenceNumber:       request.Transaction.RetrievalReferenceNumber,
-			MerchantTerminalId:             request.Transaction.MerchantTerminalID,
-			MerchantIdentifier:             request.Transaction.MerchantID,
-			MerchantLocation:               request.Transaction.MerchantLocation,
-			AuthIdentificationResponse:     "123456",
-			TransactionCurrencyCode:        request.Transaction.TransactionCurrencyCode,
-			AdditionalTxnFields: domain.ResponseAdditionalTxnFieldsTransactionBlackHawk{
-				ActivationAccountNumber:       res.ActivationAccountNumber,
-				BalanceAmount:                 res.BalanceAmount,
-				CorrelatedTransactionUniqueId: request.Transaction.AdditionalTxnFields.CorrelatedTransactionUniqueId,
-				ExpiryDate:                    res.ExpiryDate,
-				ProductId:                     request.Transaction.AdditionalTxnFields.ProductId,
-				RedemptionAccountNumber:       res.RedemptionAccountNumber,
-				RedemptionPin:                 "1234",
-				TransactionUniqueId:           request.Transaction.AdditionalTxnFields.TransactionUniqueId,
-			},
-		},
+	additionalFields := domain.AdditionalFields{
+		ActivationAccountNumber: res.ActivationAccountNumber,
+		BalanceAmount:           res.BalanceAmount,
+		ExpiryDate:              res.ExpiryDate,
+		RedemptionAccountNumber: res.RedemptionAccountNumber,
 	}
 
-	fullResponse := map[string]interface{}{
-		"response": response,
-	}
-	return c.Status(fiber.StatusOK).JSON(fullResponse)
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["ActivationAccountNumber"] = additionalFields.ActivationAccountNumber
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["BalanceAmount"] = additionalFields.BalanceAmount
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["ExpiryDate"] = additionalFields.ExpiryDate
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["RedemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
+
+	return c.Status(fiber.StatusOK).JSON(request)
 }
