@@ -198,6 +198,11 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 
 	// log.Info(res)
 
+	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
+		if _, exists := transaction["merchantLocation"]; exists {
+			delete(transaction, "merchantLocation")
+		}
+	}
 	additionalFields := domain.AdditionalFields{
 		ActivationAccountNumber: res.ActivationAccountNumber,
 		BalanceAmount:           res.BalanceAmount,
