@@ -2,10 +2,8 @@ name: Deploy to AWS
 
 on:
   push:
-    tags:
-      - 'v*'
     branches:
-      - main
+      - preprod
 
 jobs:
   build:
