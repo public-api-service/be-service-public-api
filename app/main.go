@@ -3,8 +3,6 @@ package main
 import (
 	"be-service-public-api/config"
 	"be-service-public-api/helper"
-	"context"
-	"crypto/tls"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -21,7 +19,6 @@ import (
 
 	grpcpool "github.com/processout/grpc-go-pool"
 
-	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql" // MySQL driver
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -146,38 +143,38 @@ func main() {
 	}
 
 	// Initialize Redis
-	ctx := context.Background()
-	var dbRedis *redis.Client
-	if viper.GetBool("redis.tls_config") {
-		// Jika redis.tls_config bernilai true
-		dbRedis = redis.NewClient(&redis.Options{
-			Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
-			Username: viper.GetString("redis.username"),
-			Password: viper.GetString("redis.password"),
-			DB:       viper.GetInt("redis.database"),
-			PoolSize: viper.GetInt("redis.max_connection"),
-			TLSConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-		})
-	} else {
-		// Jika redis.tls_config bernilai false atau tidak ada
-		dbRedis = redis.NewClient(&redis.Options{
-			Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
-			Username: viper.GetString("redis.username"),
-			Password: viper.GetString("redis.password"),
-			DB:       viper.GetInt("redis.database"),
-			PoolSize: viper.GetInt("redis.max_connection"),
-		})
-	}
+	// ctx := context.Background()
+	// var dbRedis *redis.Client
+	// if viper.GetBool("redis.tls_config") {
+	// 	// Jika redis.tls_config bernilai true
+	// 	dbRedis = redis.NewClient(&redis.Options{
+	// 		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
+	// 		Username: viper.GetString("redis.username"),
+	// 		Password: viper.GetString("redis.password"),
+	// 		DB:       viper.GetInt("redis.database"),
+	// 		PoolSize: viper.GetInt("redis.max_connection"),
+	// 		TLSConfig: &tls.Config{
+	// 			InsecureSkipVerify: true,
+	// 		},
+	// 	})
+	// } else {
+	// 	// Jika redis.tls_config bernilai false atau tidak ada
+	// 	dbRedis = redis.NewClient(&redis.Options{
+	// 		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
+	// 		Username: viper.GetString("redis.username"),
+	// 		Password: viper.GetString("redis.password"),
+	// 		DB:       viper.GetInt("redis.database"),
+	// 		PoolSize: viper.GetInt("redis.max_connection"),
+	// 	})
+	// }
 
-	log.Info("Redis TLS ", viper.GetBool("redis.tls_config"))
+	// log.Info("Redis TLS ", viper.GetBool("redis.tls_config"))
 
-	_, err = dbRedis.Ping(ctx).Result()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Info("Redis connection established")
+	// _, err = dbRedis.Ping(ctx).Result()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// log.Info("Redis connection established")
 	var grpcPoolProduct, grpcPoolCustomer *grpcpool.Pool
 	productConn := func() (client *grpc.ClientConn, err error) {
 		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.product_service.host"), viper.GetString("grpc.product_service.port"))
