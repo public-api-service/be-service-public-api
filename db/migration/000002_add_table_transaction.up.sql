@@ -23,7 +23,7 @@ CREATE TABLE transactions (
     correlatedTransactionUniqueId VARCHAR(255),
     balanceAmount INTEGER,
     redemptionAccountNumber VARCHAR(100),
-    ActivationAccountNumber VARCHAR(100,)
+    ActivationAccountNumber VARCHAR(100),
     expiryDate VARCHAR(50),
-    status VARCHAR(20)
+    status VARCHAR(20) NOT NULL
 );

@@ -4,6 +4,7 @@ import (
 	"be-service-public-api/domain"
 	"be-service-public-api/helper"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strconv"
 
@@ -179,6 +180,12 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
 	}
 
+	var req domain.RequestMarshal
+	err = json.Unmarshal(jsonString, &req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
 	matches := productIDRegex.FindStringSubmatch(string(jsonString))
 	if len(matches) != 2 {
@@ -187,7 +194,30 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	}
 	productID := matches[1]
 
-	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), productID)
+	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
+		ProductID:                      productID,
+		Signature:                      req.Header.Signature,
+		ProductCategoryCode:            req.Header.Details.ProductCategoryCode,
+		SpecVersion:                    req.Header.Details.SpecVersion,
+		PrimaryAccountNumber:           req.Transaction.PrimaryAccountNumber,
+		ProcessingCode:                 req.Transaction.ProcessingCode,
+		TransactionAmount:              req.Transaction.TransactionAmount,
+		TransmissionDateTime:           req.Transaction.TransmissionDateTime,
+		SystemTraceAuditNumber:         req.Transaction.SystemTraceAuditNumber,
+		LocalTransactionTime:           req.Transaction.LocalTransactionTime,
+		LocalTransactionDate:           req.Transaction.LocalTransactionDate,
+		MerchantCategoryCode:           req.Transaction.MerchantCategoryCode,
+		PointOfServiceEntryMode:        req.Transaction.PointOfServiceEntryMode,
+		AcquiringInstitutionIdentifier: req.Transaction.AcquiringInstitutionIdentifier,
+		RetrievalReferenceNumber:       req.Transaction.RetrievalReferenceNumber,
+		MerchantTerminalId:             req.Transaction.MerchantTerminalID,
+		MerchantIdentifier:             req.Transaction.MerchantIdentifier,
+		MerchantLocation:               req.Transaction.MerchantLocation,
+		TransactionCurrencyCode:        req.Transaction.TransactionCurrencyCode,
+		TransactionUniqueId:            req.Transaction.AdditionalTxnFields.TransactionUniqueID,
+		CorrelatedTransactionUniqueId:  req.Transaction.AdditionalTxnFields.CorrelatedTransactionUniqueID,
+		Status:                         "Original",
+	})
 	if err != nil {
 		log.Error("Error get key : ", err)
 		if err.Error() == "Data not found" {
@@ -239,7 +269,9 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	}
 	productID := matches[1]
 
-	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), productID)
+	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
+		ProductID: productID,
+	})
 	if err != nil {
 		log.Error("Error get key : ", err)
 		if err.Error() == "Data not found" {

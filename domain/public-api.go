@@ -152,16 +152,78 @@ type AdditionalFields struct {
 	ExpiryDate                    string `json:"expiryDate"`
 }
 
+type TransactionRequest struct {
+	ID                             int64  `json:"id"`
+	Signature                      string `json:"signature"`
+	ProductCategoryCode            string `json:"productCategoryCode"`
+	SpecVersion                    string `json:"specVersion"`
+	PrimaryAccountNumber           string `json:"primaryAccountNumber"`
+	ProcessingCode                 string `json:"processingCode"`
+	TransactionAmount              string `json:"transactionAmount"`
+	TransmissionDateTime           string `json:"transmissionDateTime"`
+	SystemTraceAuditNumber         string `json:"systemTraceAuditNumber"`
+	LocalTransactionTime           string `json:"localTransactionTime"`
+	LocalTransactionDate           string `json:"localTransactionDate"`
+	MerchantCategoryCode           string `json:"merchantCategoryCode"`
+	PointOfServiceEntryMode        string `json:"pointOfServiceEntryMode"`
+	AcquiringInstitutionIdentifier string `json:"acquiringInstitutionIdentifier"`
+	RetrievalReferenceNumber       string `json:"retrievalReferenceNumber"`
+	MerchantTerminalId             string `json:"merchantTerminalId"`
+	MerchantIdentifier             string `json:"merchantIdentifier"`
+	MerchantLocation               string `json:"merchantLocation"`
+	TransactionCurrencyCode        string `json:"transactionCurrencyCode"`
+	ProductID                      string `json:"productId"`
+	TransactionUniqueId            string `json:"transactionUniqueId"`
+	CorrelatedTransactionUniqueId  string `json:"correlatedTransactionUniqueId"`
+	BalanceAmount                  int    `json:"balanceAmount"`
+	RedemptionAccountNumber        string `json:"redemptionAccountNumber"`
+	ActivationAccountNumber        string `json:"activationAccountNumber"`
+	ExpiryDate                     string `json:"expiryDate"`
+	Status                         string `json:"status"`
+}
+
+type RequestMarshal struct {
+	Header struct {
+		Signature string `json:"signature"`
+		Details   struct {
+			ProductCategoryCode string `json:"productCategoryCode"`
+			SpecVersion         string `json:"specVersion"`
+		} `json:"details"`
+	} `json:"header"`
+	Transaction struct {
+		PrimaryAccountNumber           string `json:"primaryAccountNumber"`
+		ProcessingCode                 string `json:"processingCode"`
+		TransactionAmount              string `json:"transactionAmount"`
+		TransmissionDateTime           string `json:"transmissionDateTime"`
+		SystemTraceAuditNumber         string `json:"systemTraceAuditNumber"`
+		LocalTransactionTime           string `json:"localTransactionTime"`
+		LocalTransactionDate           string `json:"localTransactionDate"`
+		MerchantCategoryCode           string `json:"merchantCategoryCode"`
+		PointOfServiceEntryMode        string `json:"pointOfServiceEntryMode"`
+		AcquiringInstitutionIdentifier string `json:"acquiringInstitutionIdentifier"`
+		RetrievalReferenceNumber       string `json:"retrievalReferenceNumber"`
+		MerchantTerminalID             string `json:"merchantTerminalId"`
+		MerchantIdentifier             string `json:"merchantIdentifier"`
+		MerchantLocation               string `json:"merchantLocation"`
+		TransactionCurrencyCode        string `json:"transactionCurrencyCode"`
+		AdditionalTxnFields            struct {
+			ProductID                     string `json:"productId"`
+			TransactionUniqueID           string `json:"transactionUniqueId"`
+			CorrelatedTransactionUniqueID string `json:"correlatedTransactionUniqueId"`
+		} `json:"additionalTxnFields"`
+	} `json:"transaction"`
+}
+
 type PublicAPIUseCase interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
 	GetProduct(ctx context.Context, request int) (response ProductResponseDTO, err error)
 	CheckStok(ctx context.Context, id int32) (err error)
-	AccountRequest(ctx context.Context, productID string) (response AdditionalFields, err error)
+	AccountRequest(ctx context.Context, request TransactionRequest) (response AdditionalFields, err error)
 }
 
 type PublicAPIMySQLRepo interface {
-	// GetAllClientData(ctx context.Context) (response []ResponseB2BDTO, err error)
+	InsertOriginalTransaction(ctx context.Context, request TransactionRequest) (err error)
 }
 
 type PublicAPIGRPCRepo interface {
