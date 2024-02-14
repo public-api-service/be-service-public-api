@@ -65,8 +65,8 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 	return
 }
 
-func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request string) (response domain.AdditionalFields, err error) {
-	productID, err := strconv.ParseInt(request, 10, 64)
+func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
+	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal
 		fmt.Println("Error converting ProductID:", err)
@@ -78,7 +78,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request string) 
 	}
 
 	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
-		ProductID: request,
+		ProductID: request.ProductID,
 		Limit:     "1",
 	})
 
@@ -127,5 +127,14 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request string) 
 		return response, err
 	}
 
+	request.ActivationAccountNumber = paramKeyNumberStr
+	request.BalanceAmount = int(resProduct.FinalPrice)
+	request.RedemptionAccountNumber = resProduct.SKU
+	request.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+
+	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
+	if err != nil {
+		return response, err
+	}
 	return
 }
