@@ -134,14 +134,8 @@ type Redis struct {
 
 	// Database
 	Database uint64 `yaml:"database"`
-}
 
-type MessageBroker struct {
-	Host string `yaml:"host,omitempty"`
-
-	Port string `yaml:"port,omitempty"`
-
-	Password string `yaml:"password"`
+	TlsConfig bool `yaml:"tls_config"`
 }
 
 type SMTPCredential struct {
@@ -196,6 +190,7 @@ var defaultConfig = &Config{
 		Username:      "",
 		Password:      "",
 		Database:      0,
+		TlsConfig:     false,
 	},
 
 	GRPC: GRPC{
