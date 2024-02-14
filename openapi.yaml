@@ -11,161 +11,161 @@ servers:
     description: "staging development"
 
 paths:
-  /checkout:
-    post:
-      summary: Save customer data, and checkout
-      description: Save customer data, and checkout
-      tags:
-        - Transaction
-      security:
-        - OAuth2ClientCredentials:
-          - write_clients
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CustomerRequest'
-      responses:
-        '201':
-          description: Keys created successfully
-          # content:
-          #   application/json:
-          #     schema:
-          #       $ref: '#/components/schemas/KeysResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
-  /product:
-    get:
-      summary: Get All Data Product
-      description: Get All Data Product
-      tags:
-        - Product & Keys
-      security:
-        - OAuth2ClientCredentials:
-          - write_clients
-      parameters:
-        - name: page
-          in: query
-          description: Page
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: Limit
-          schema:
-            type: integer
-        - name: order
-          in: query
-          description: order menggunakan kolom ID sebagai index
-          schema:
-            type: string
-            enum:
-              - asc
-              - desc
-        - name: id
-          in: query
-          description: UserID
-          schema:
-            type: integer
-        - name: search
-          in: query
-          description: Search
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseSuccess'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
-        '404':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
-  /product/{id}:
-    get:
-      summary: Get Detail Data Product
-      description: Get Detail Data Product
-      tags:
-        - Product & Keys
-      security:
-        - OAuth2ClientCredentials:
-          - write_clients
-      parameters:
-        - name: id
-          in: path
-          description: ID Product
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseSuccess'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
-        '404':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorBadRequest'
-  /check/stok/{id}:
-    get:
-      summary: List All Sales
-      description: List All Sales
-      tags:
-        - Transaction
-      security:
-        - OAuth2ClientCredentials:
-          - write_clients
-      parameters:
-        - name: id
-          in: path
-          description: ID Product Sales
-          schema:
-            type: integer
-          required: true
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseSuccessAuth'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorUnauthorized'
+  # /checkout:
+  #   post:
+  #     summary: Save customer data, and checkout
+  #     description: Save customer data, and checkout
+  #     tags:
+  #       - Transaction
+  #     security:
+  #       - OAuth2ClientCredentials:
+  #         - write_clients
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/x-www-form-urlencoded:
+  #           schema:
+  #             $ref: '#/components/schemas/CustomerRequest'
+  #     responses:
+  #       '201':
+  #         description: Keys created successfully
+  #         # content:
+  #         #   application/json:
+  #         #     schema:
+  #         #       $ref: '#/components/schemas/KeysResponse'
+  #       '400':
+  #         description: Bad Request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorBadRequest'
+  #       '401':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorUnauthorized'
+  # /product:
+  #   get:
+  #     summary: Get All Data Product
+  #     description: Get All Data Product
+  #     tags:
+  #       - Product & Keys
+  #     security:
+  #       - OAuth2ClientCredentials:
+  #         - write_clients
+  #     parameters:
+  #       - name: page
+  #         in: query
+  #         description: Page
+  #         schema:
+  #           type: integer
+  #       - name: limit
+  #         in: query
+  #         description: Limit
+  #         schema:
+  #           type: integer
+  #       - name: order
+  #         in: query
+  #         description: order menggunakan kolom ID sebagai index
+  #         schema:
+  #           type: string
+  #           enum:
+  #             - asc
+  #             - desc
+  #       - name: id
+  #         in: query
+  #         description: UserID
+  #         schema:
+  #           type: integer
+  #       - name: search
+  #         in: query
+  #         description: Search
+  #         schema:
+  #           type: string
+  #     responses:
+  #       '200':
+  #         description: Authentication successful
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ResponseSuccess'
+  #       '401':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorUnauthorized'
+  #       '404':
+  #         description: Bad Request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorBadRequest'
+  # /product/{id}:
+  #   get:
+  #     summary: Get Detail Data Product
+  #     description: Get Detail Data Product
+  #     tags:
+  #       - Product & Keys
+  #     security:
+  #       - OAuth2ClientCredentials:
+  #         - write_clients
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         description: ID Product
+  #         schema:
+  #           type: integer
+  #         required: true
+  #     responses:
+  #       '200':
+  #         description: Authentication successful
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ResponseSuccess'
+  #       '401':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorUnauthorized'
+  #       '404':
+  #         description: Bad Request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorBadRequest'
+  # /check/stok/{id}:
+  #   get:
+  #     summary: List All Sales
+  #     description: List All Sales
+  #     tags:
+  #       - Transaction
+  #     security:
+  #       - OAuth2ClientCredentials:
+  #         - write_clients
+  #     parameters:
+  #       - name: id
+  #         in: path
+  #         description: ID Product Sales
+  #         schema:
+  #           type: integer
+  #         required: true
+  #     responses:
+  #       '200':
+  #         description: Success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ResponseSuccessAuth'
+  #       '401':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorUnauthorized'
   /transaction:
     post:
       summary: Post Original Digital Account Request
