@@ -4,6 +4,7 @@ import (
 	"be-service-public-api/config"
 	"be-service-public-api/helper"
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -146,13 +147,31 @@ func main() {
 
 	// Initialize Redis
 	ctx := context.Background()
-	dbRedis := redis.NewClient(&redis.Options{
-		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
-		Username: viper.GetString("redis.username"),
-		Password: viper.GetString("redis.password"),
-		DB:       viper.GetInt("redis.database"),
-		PoolSize: viper.GetInt("redis.max_connection"),
-	})
+	var dbRedis *redis.Client
+	if viper.GetBool("redis.tls_config") {
+		// Jika redis.tls_config bernilai true
+		dbRedis = redis.NewClient(&redis.Options{
+			Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
+			Username: viper.GetString("redis.username"),
+			Password: viper.GetString("redis.password"),
+			DB:       viper.GetInt("redis.database"),
+			PoolSize: viper.GetInt("redis.max_connection"),
+			TLSConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		})
+	} else {
+		// Jika redis.tls_config bernilai false atau tidak ada
+		dbRedis = redis.NewClient(&redis.Options{
+			Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
+			Username: viper.GetString("redis.username"),
+			Password: viper.GetString("redis.password"),
+			DB:       viper.GetInt("redis.database"),
+			PoolSize: viper.GetInt("redis.max_connection"),
+		})
+	}
+
+	log.Info("Redis TLS ", viper.GetBool("redis.tls_config"))
 
 	_, err = dbRedis.Ping(ctx).Result()
 	if err != nil {
