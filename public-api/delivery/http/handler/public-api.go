@@ -210,10 +210,73 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		RedemptionAccountNumber: res.RedemptionAccountNumber,
 	}
 
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["ActivationAccountNumber"] = additionalFields.ActivationAccountNumber
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["BalanceAmount"] = additionalFields.BalanceAmount
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["ExpiryDate"] = additionalFields.ExpiryDate
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["RedemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["activationAccountNumber"] = additionalFields.ActivationAccountNumber
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["expiryDate"] = additionalFields.ExpiryDate
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
 
 	return c.Status(fiber.StatusOK).JSON(request)
+}
+
+func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
+	var request map[string]interface{}
+	if err := c.BodyParser(&request); err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
+	}
+
+	jsonString, err := json.Marshal(request)
+	if err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+	}
+
+	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
+	matches := productIDRegex.FindStringSubmatch(string(jsonString))
+	if len(matches) != 2 {
+		log.Println("Failed to extract productID")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
+	}
+	productID := matches[1]
+
+	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), productID)
+	if err != nil {
+		log.Error("Error get key : ", err)
+		if err.Error() == "Data not found" {
+			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+		}
+		return err
+	}
+
+	// log.Info(res)
+
+	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
+		if _, exists := transaction["merchantLocation"]; exists {
+			delete(transaction, "merchantLocation")
+		}
+	}
+	additionalFields := domain.AdditionalFields{
+		ActivationAccountNumber: res.ActivationAccountNumber,
+		BalanceAmount:           res.BalanceAmount,
+		ExpiryDate:              res.ExpiryDate,
+		RedemptionAccountNumber: res.RedemptionAccountNumber,
+	}
+
+	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
+
+	// Add additional fields to the "header" section
+	if header, ok := request["header"].(map[string]interface{}); ok {
+		if details, ok := header["details"].(map[string]interface{}); ok {
+			details["statusCode"] = "00"
+		}
+	}
+	return c.Status(fiber.StatusOK).JSON(request)
+}
+
+func (ph *PublicHandler) Network(c *fiber.Ctx) (err error) {
+	if err != nil {
+		return helper.HttpSimpleResponse(c, fasthttp.StatusBadGateway)
+	}
+
+	return c.Status(fasthttp.StatusOK).SendString("OK")
 }

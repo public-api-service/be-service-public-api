@@ -191,6 +191,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorUnauthorized'
+  /transaction/reverse:
+    post:
+      summary: Post Reversal Digital Account Request
+      description: Post Reversal Digital Account Request
+      tags:
+        - 3rdPart Black Hawk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestDigitalAccountOriginal'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSuccessAuth'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
+  /transaction/network:
+    get:
+      summary: Request to initiate Network Session and perform network Logon.
+      description: Request to initiate Network Session and perform network Logon.
+      tags:
+        - 3rdPart Black Hawk
+      responses:
+        '200':
+          description: Success
+        '502':
+          description: Bad gateway
 components:
   schemas:
     RequestLogin:
