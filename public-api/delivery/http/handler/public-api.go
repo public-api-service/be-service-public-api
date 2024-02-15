@@ -306,9 +306,35 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 }
 
 func (ph *PublicHandler) Network(c *fiber.Ctx) (err error) {
-	if err != nil {
-		return helper.HttpSimpleResponse(c, fasthttp.StatusBadGateway)
+	var request map[string]interface{}
+	if err := c.BodyParser(&request); err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 	}
 
-	return c.Status(fasthttp.StatusOK).SendString("OK")
+	// Memastikan bahwa request memiliki struktur yang diharapkan
+	reqData, ok := request["request"].(map[string]interface{})
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request structure"})
+	}
+
+	// Mengatur status code pada bagian header jika struktur request sesuai
+	if header, ok := reqData["header"].(map[string]interface{}); ok {
+		if details, ok := header["details"].(map[string]interface{}); ok {
+			details["statusCode"] = "00"
+		}
+	}
+
+	// Mengatur nilai-nilai pada bagian transaction jika struktur request sesuai
+	if transaction, ok := reqData["transaction"].(map[string]interface{}); ok {
+		transaction["authIdentificationResponse"] = "000000"
+		transaction["responseCode"] = "00"
+	}
+
+	// Membuat respons dengan struktur yang sesuai
+	response := map[string]interface{}{
+		"response": reqData,
+	}
+
+	return c.Status(fasthttp.StatusOK).JSON(response)
 }
