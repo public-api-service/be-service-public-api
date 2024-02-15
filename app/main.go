@@ -174,7 +174,7 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	// log.Info("Redis connection established")
+	log.Info("Redis connection established")
 	var grpcPoolProduct, grpcPoolCustomer *grpcpool.Pool
 	productConn := func() (client *grpc.ClientConn, err error) {
 		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.product_service.host"), viper.GetString("grpc.product_service.port"))

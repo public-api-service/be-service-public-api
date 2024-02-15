@@ -9,6 +9,8 @@ servers:
     description: "local development"
   - url: https://nortonweb.luru.space/backend/api/v1/public/
     description: "staging development"
+  - url: https://preprod.api.nortonlifelock.co.id//blackhawk/transactionManagement/v2/
+    description: "dev development"
 
 paths:
   # /checkout:
