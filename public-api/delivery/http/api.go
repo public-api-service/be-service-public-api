@@ -34,6 +34,6 @@ func RouterAPI(app *fiber.App, PublicAPIUseCase domain.PublicAPIUseCase, Authori
 	publicAPI.Get("/check/stok/:id", handlerAuthorization.TokenOauth(), handlerPublicAPI.CheckStok)
 	publicAPI.Post("/transaction", handlerPublicAPI.AccountRequest)
 	publicAPI.Post("/transaction/reverse", handlerPublicAPI.AccountReverse)
-	publicAPI.Get("/transaction/network", handlerPublicAPI.Network)
+	publicAPI.Post("/transaction/network", handlerPublicAPI.Network)
 
 }
