@@ -219,7 +219,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorUnauthorized'
   /transaction/network:
-    get:
+    post:
       summary: Request to initiate Network Session and perform network Logon.
       description: Request to initiate Network Session and perform network Logon.
       tags:
