@@ -171,7 +171,7 @@ paths:
   /transaction:
     post:
       summary: Post Original Digital Account Request
-      description: Post Original Digital Account Request
+      description: Follow this link to use format request [Follow this link](https://developer.blackhawknetwork.com/blast/docs/digital-account-request). and make sure you are in tab section "JSON SP Sample"
       tags:
         - 3rdPart Black Hawk
       requestBody:
@@ -196,7 +196,7 @@ paths:
   /transaction/reverse:
     post:
       summary: Post Reversal Digital Account Request
-      description: Post Reversal Digital Account Request
+      description: Follow this link to use format request [Follow this link](https://developer.blackhawknetwork.com/blast/docs/digital-account-request-reversal). and make sure you are in tab section "JSON SP Sample"
       tags:
         - 3rdPart Black Hawk
       requestBody:
@@ -221,7 +221,7 @@ paths:
   /transaction/network:
     post:
       summary: Request to initiate Network Session and perform network Logon.
-      description: Request to initiate Network Session and perform network Logon.
+      description: Follow this link to use format request [Follow this link](https://developer.blackhawknetwork.com/blast/docs/network-messages).
       tags:
         - 3rdPart Black Hawk
       responses:
