@@ -199,7 +199,7 @@ var defaultConfig = &Config{
 			Port: "58884",
 		},
 		ProductService: HostPort{
-			Host: "localhost",
+			Host: "128.199.206.202",
 			Port: "58883",
 		},
 	},

@@ -47,63 +47,63 @@ paths:
   #           application/json:
   #             schema:
   #               $ref: '#/components/schemas/ErrorUnauthorized'
-  # /product:
-  #   get:
-  #     summary: Get All Data Product
-  #     description: Get All Data Product
-  #     tags:
-  #       - Product & Keys
-  #     security:
-  #       - OAuth2ClientCredentials:
-  #         - write_clients
-  #     parameters:
-  #       - name: page
-  #         in: query
-  #         description: Page
-  #         schema:
-  #           type: integer
-  #       - name: limit
-  #         in: query
-  #         description: Limit
-  #         schema:
-  #           type: integer
-  #       - name: order
-  #         in: query
-  #         description: order menggunakan kolom ID sebagai index
-  #         schema:
-  #           type: string
-  #           enum:
-  #             - asc
-  #             - desc
-  #       - name: id
-  #         in: query
-  #         description: UserID
-  #         schema:
-  #           type: integer
-  #       - name: search
-  #         in: query
-  #         description: Search
-  #         schema:
-  #           type: string
-  #     responses:
-  #       '200':
-  #         description: Authentication successful
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/ResponseSuccess'
-  #       '401':
-  #         description: Unauthorized
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/ErrorUnauthorized'
-  #       '404':
-  #         description: Bad Request
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: '#/components/schemas/ErrorBadRequest'
+  /product:
+    get:
+      summary: Get All Data Product
+      description: Get All Data Product
+      tags:
+        - Product & Keys
+      security:
+        - OAuth2ClientCredentials:
+          - write_clients
+      parameters:
+        - name: page
+          in: query
+          description: Page
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit
+          schema:
+            type: integer
+        - name: order
+          in: query
+          description: order menggunakan kolom ID sebagai index
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: id
+          in: query
+          description: UserID
+          schema:
+            type: integer
+        - name: search
+          in: query
+          description: Search
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSuccess'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorUnauthorized'
+        '404':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
   # /product/{id}:
   #   get:
   #     summary: Get Detail Data Product
@@ -224,6 +224,12 @@ paths:
       description: Follow this link to use format request [Follow this link](https://developer.blackhawknetwork.com/blast/docs/network-messages).
       tags:
         - 3rdPart Black Hawk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestDigitalAccountOriginal'
       responses:
         '200':
           description: Success

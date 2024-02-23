@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"be-service-public-api/domain"
+	"be-service-public-api/helper"
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -66,6 +68,20 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 }
 
 func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
+	// validate transaction currency
+	currencyCode, err := helper.IsValidCurrencyCode(request.TransactionCurrencyCode)
+	if err != nil {
+		err = errors.New("Invalid currency")
+		return response, err
+	}
+
+	err = helper.IsValidAmount(request.TransactionAmount, currencyCode)
+	if err != nil {
+		log.Error("Invalid amount format in current ", currencyCode)
+		err = errors.New("Invalid amount")
+		return response, err
+	}
+
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal
@@ -135,6 +151,101 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
 	if err != nil {
 		return response, err
+	}
+	return
+}
+
+func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
+	// Validation MerchantTerminalID
+
+	err = pu.publicAPIMySQLRepo.GetDataMerchantExist(ctx, request.MerchantTerminalId)
+	if err != nil {
+		return response, err
+	}
+
+	// Validation MerchantTerminalIdentifier
+	if request.MerchantTerminalId != request.MerchantTerminalId+"    " {
+		err = errors.New("Invalid merchant identifier")
+		return response, err
+	}
+
+	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
+	if err != nil {
+		// Handle kesalahan jika konversi gagal
+		fmt.Println("Error converting ProductID:", err)
+		return
+	}
+	resProduct, err := pu.productGRPCRepo.GetProductByID(ctx, productID)
+	if err != nil {
+		return response, err
+	}
+
+	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
+		ProductID: request.ProductID,
+		Limit:     "1",
+	})
+
+	if err != nil {
+		log.Error(err)
+		return response, err
+	}
+
+	var paramIDJoinStr, paramKeyNumberStr string
+	for _, v := range res {
+		paramIDJoinStr += strconv.Itoa(int(v.ID)) + ","
+		paramKeyNumberStr += v.NumberKeys + ","
+	}
+
+	if len(paramIDJoinStr) > 0 {
+		paramIDJoinStr = paramIDJoinStr[:len(paramIDJoinStr)-1]
+	}
+
+	if len(paramKeyNumberStr) > 0 {
+		paramKeyNumberStr = paramKeyNumberStr[:len(paramKeyNumberStr)-1]
+	}
+
+	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
+		ProductID: paramIDJoinStr,
+	})
+
+	response.ActivationAccountNumber = paramKeyNumberStr
+	response.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
+	response.RedemptionAccountNumber = resProduct.SKU
+
+	parts := strings.Fields(resProduct.Duration)
+	number, _ := strconv.Atoi(parts[0])
+	unit := parts[1]
+	currentTime := time.Now()
+	var expired time.Time
+
+	if unit == "bulan" {
+		expired = currentTime.AddDate(0, number, 0)
+	} else {
+		expired = currentTime.AddDate(number, 0, 0)
+	}
+
+	response.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+
+	if err != nil {
+		return response, err
+	}
+
+	request.ActivationAccountNumber = paramKeyNumberStr
+	request.BalanceAmount = int(resProduct.FinalPrice)
+	request.RedemptionAccountNumber = resProduct.SKU
+	request.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+
+	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
+	if err != nil {
+		return response, err
+	}
+	return
+}
+
+func (pu *publicAPIUseCase) GetDataMerchantExist(ctx context.Context, merchantID string) (err error) {
+	err = pu.publicAPIMySQLRepo.GetDataMerchantExist(ctx, merchantID)
+	if err != nil {
+		return err
 	}
 	return
 }

@@ -25,6 +25,9 @@ const (
 	StatusInternalServerErrorDatabaseRedis     = 5003
 	StatusInternalServerErrorServiceMemberApps = 5004
 	StatusInternalServerErrorServiceAuthApps   = 5005
+	StatusInvalidAmount                        = 307
+	StatusInvalidCurrency                      = 193
+	StatusSuccess                              = 00
 )
 
 type errorInfo struct {
@@ -181,6 +184,30 @@ var constantError = map[InternalError]errorInfo{
 		UserMessage: UserMessage{
 			En: "There is some problem with other service, please try again",
 			Id: "Ada masalah dengan service lain, silahkan dicoba lagi",
+		},
+	},
+	StatusInvalidAmount: {
+		HttpCode: 307,
+		Title:    "Invalid Amount",
+		UserMessage: UserMessage{
+			En: "Invalid Amount",
+			Id: "Ada masalah dengan service lain, silahkan dicoba lagi",
+		},
+	},
+	StatusInvalidCurrency: {
+		HttpCode: 193,
+		Title:    "Invalid Currency",
+		UserMessage: UserMessage{
+			En: "Invalid Currency",
+			Id: "Ada masalah dengan service lain, silahkan dicoba lagi",
+		},
+	},
+	StatusSuccess: {
+		HttpCode: 00,
+		Title:    "Success",
+		UserMessage: UserMessage{
+			En: "Success",
+			Id: "Sukses",
 		},
 	},
 }

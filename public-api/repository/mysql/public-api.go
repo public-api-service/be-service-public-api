@@ -4,6 +4,7 @@ import (
 	"be-service-public-api/domain"
 	"context"
 	"database/sql"
+	"errors"
 )
 
 type mysqlPublicAPIRepository struct {
@@ -84,4 +85,25 @@ func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Contex
 	}
 
 	return nil
+}
+
+func (db *mysqlPublicAPIRepository) GetDataMerchantExist(ctx context.Context, merchantID string) (err error) {
+	var count int
+	query := `SELECT COUNT(id) FROM oauth WHERE client_id = ?`
+
+	err = db.Conn.QueryRowContext(ctx, query, merchantID).Scan(&count)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = errors.New("Data not exist")
+			return
+		}
+		return
+	}
+
+	if count == 0 {
+		err = errors.New("Merchant not exist")
+		return err
+	}
+
+	return
 }

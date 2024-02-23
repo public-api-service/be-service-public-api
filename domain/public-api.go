@@ -219,11 +219,14 @@ type PublicAPIUseCase interface {
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
 	GetProduct(ctx context.Context, request int) (response ProductResponseDTO, err error)
 	CheckStok(ctx context.Context, id int32) (err error)
+	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
 	AccountRequest(ctx context.Context, request TransactionRequest) (response AdditionalFields, err error)
+	AccountReverse(ctx context.Context, request TransactionRequest) (response AdditionalFields, err error)
 }
 
 type PublicAPIMySQLRepo interface {
 	InsertOriginalTransaction(ctx context.Context, request TransactionRequest) (err error)
+	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
 }
 
 type PublicAPIGRPCRepo interface {

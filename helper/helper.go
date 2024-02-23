@@ -4,11 +4,15 @@ import (
 	"be-service-public-api/domain"
 	"context"
 	"encoding/base64"
+	"errors"
+	"regexp"
+	"strconv"
 	"strings"
 
 	nethttp "net/http"
 
 	"github.com/labstack/gommon/log"
+	"github.com/rmg/iso4217"
 )
 
 func ToAlphaString(col int) string {
@@ -68,4 +72,30 @@ func GenerateOAuthCredential(ctx context.Context, r *nethttp.Request) (clientCre
 
 	return
 
+}
+
+func IsValidCurrencyCode(code string) (currencyCode string, err error) {
+	codeInt, err := strconv.Atoi(code)
+	if err != nil {
+		return currencyCode, err
+	}
+
+	currencyCode, minor := iso4217.ByCode(codeInt)
+
+	if currencyCode == "" && minor == 0 {
+		return currencyCode, errors.New("Currency code invalid")
+	}
+
+	return
+}
+
+func IsValidAmount(amount, currencyCode string) error {
+	msg := "Invalid amount"
+
+	regex := regexp.MustCompile(`^[0-9]+$`)
+	if !regex.MatchString(amount) {
+		return errors.New(msg)
+	}
+
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
@@ -168,6 +169,14 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 // }
 
 func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
+	formattedDate := time.Now().Format("060102")
+	formatTimeStamp := time.Now().Format("150405000")
+	InvoiceFormat := "NRT-DN-BH"
+
+	termAndCondition := "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
+
+	lastInvoice := fmt.Sprintf("%s-%s-%s", InvoiceFormat, formattedDate, formatTimeStamp)
+
 	var request map[string]interface{}
 	if err := c.BodyParser(&request); err != nil {
 		log.Println(err)
@@ -193,7 +202,13 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
 	}
 	productID := matches[1]
+	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
+		if _, exists := transaction["merchantLocation"]; exists {
+			delete(transaction, "merchantLocation")
+		}
 
+		transaction["responseCode"] = "00"
+	}
 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
 		ProductID:                      productID,
 		Signature:                      req.Header.Signature,
@@ -219,25 +234,41 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		Status:                         "Original",
 	})
 	if err != nil {
-		log.Error("Error get key : ", err)
-		if err.Error() == "Data not found" {
-			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+		responseCode := "13"
+		log.Error("Error : ", err)
+		log.Info(err.Error())
+		if err.Error() == "rpc error: code = Unknown desc = Data not found" {
+			responseCode = "00"
+			request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = lastInvoice
+
 		}
-		return err
+		if header, ok := request["header"].(map[string]interface{}); ok {
+			if details, ok := header["details"].(map[string]interface{}); ok {
+				details["statusCode"] = "00"
+			}
+		}
+
+		if transaction, ok := request["transaction"].(map[string]interface{}); ok {
+			transaction["responseCode"] = responseCode
+			transaction["termsAndConditions"] = termAndCondition
+		}
+		request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
+		return c.Status(fasthttp.StatusOK).JSON(request)
 	}
 
 	// log.Info(res)
 
-	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-		if _, exists := transaction["merchantLocation"]; exists {
-			delete(transaction, "merchantLocation")
-		}
-	}
 	additionalFields := domain.AdditionalFields{
 		ActivationAccountNumber: res.ActivationAccountNumber,
 		BalanceAmount:           res.BalanceAmount,
 		ExpiryDate:              res.ExpiryDate,
 		RedemptionAccountNumber: res.RedemptionAccountNumber,
+	}
+
+	if header, ok := request["header"].(map[string]interface{}); ok {
+		if details, ok := header["details"].(map[string]interface{}); ok {
+			details["statusCode"] = "00"
+		}
 	}
 
 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["activationAccountNumber"] = additionalFields.ActivationAccountNumber
@@ -269,13 +300,27 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	}
 	productID := matches[1]
 
-	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
-		ProductID: productID,
+	transaction := request["transaction"].(map[string]interface{})
+	res, err := ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionRequest{
+		ProductID:            productID,
+		LocalTransactionDate: transaction["transmissionDateTime"].(string),
+		LocalTransactionTime: transaction["localTransactionTime"].(string),
+		MerchantTerminalId:   transaction["merchantTerminalId"].(string),
+		MerchantIdentifier:   transaction["merchantIdentifier"].(string),
 	})
 	if err != nil {
-		log.Error("Error get key : ", err)
+		log.Error("Err usecase  : ", err)
 		if err.Error() == "Data not found" {
 			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+		}
+
+		if err.Error() == "Merchant not exist" || err.Error() == "Invalid merchant identifier" {
+			if header, ok := request["header"].(map[string]interface{}); ok {
+				if details, ok := header["details"].(map[string]interface{}); ok {
+					details["statusCode"] = "00"
+				}
+			}
+			return c.Status(fasthttp.StatusEarlyHints).JSON(request)
 		}
 		return err
 	}
@@ -301,6 +346,10 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 		if details, ok := header["details"].(map[string]interface{}); ok {
 			details["statusCode"] = "00"
 		}
+	}
+
+	if transaction, ok := transaction["transaction"].(map[string]interface{}); ok {
+		transaction["responseCode"] = "00"
 	}
 	return c.Status(fiber.StatusOK).JSON(request)
 }
