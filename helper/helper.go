@@ -2,13 +2,17 @@ package helper
 
 import (
 	"be-service-public-api/domain"
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"net/http"
 	nethttp "net/http"
 
 	"github.com/labstack/gommon/log"
@@ -19,7 +23,7 @@ func ToAlphaString(col int) string {
 	var result string
 	for col > 0 {
 		col--
-		result = string('A'+col%26) + result
+		result = fmt.Sprintf("%c", 'A'+col%26) + result
 		col /= 26
 	}
 	return result
@@ -95,6 +99,32 @@ func IsValidAmount(amount, currencyCode string) error {
 	regex := regexp.MustCompile(`^[0-9]+$`)
 	if !regex.MatchString(amount) {
 		return errors.New(msg)
+	}
+
+	return nil
+}
+
+func SendMessageToDiscord(webhookURL string, message string) (err error) {
+	// Membuat payload pesan dalam format JSON
+	payload := map[string]string{"content": message}
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Error("error marshalling JSON payload: ", err)
+		return nil
+	}
+
+	// Mengirimkan POST request ke webhook URL
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		log.Error("error sending POST request:", err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	// Mengecek status code dari response
+	if resp.StatusCode != http.StatusOK {
+		log.Error("unexpected status code: ", resp.StatusCode)
+		return nil
 	}
 
 	return nil

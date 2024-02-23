@@ -203,10 +203,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	}
 	productID := matches[1]
 	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-		if _, exists := transaction["merchantLocation"]; exists {
-			delete(transaction, "merchantLocation")
-		}
-
+		delete(transaction, "merchantLocation")
 		transaction["responseCode"] = "00"
 	}
 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
@@ -257,6 +254,13 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 			transaction["termsAndConditions"] = termAndCondition
 		}
 		request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
+
+		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
+		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
+		if err != nil {
+			return nil
+		}
+
 		return c.Status(fasthttp.StatusOK).JSON(request)
 	}
 
@@ -341,15 +345,18 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 			transaction["termsAndConditions"] = termAndCondition
 		}
 
+		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION REVERSAL** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
+		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
+		if err != nil {
+			return err
+		}
 		return c.Status(fasthttp.StatusOK).JSON(request)
 	}
 
 	// log.Info(res)
 
 	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-		if _, exists := transaction["merchantLocation"]; exists {
-			delete(transaction, "merchantLocation")
-		}
+		delete(transaction, "merchantLocation")
 	}
 	additionalFields := domain.AdditionalFields{
 		ActivationAccountNumber: res.ActivationAccountNumber,

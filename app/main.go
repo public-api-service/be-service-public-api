@@ -37,10 +37,6 @@ import (
 	store "gopkg.in/oauth2.v3/store"
 )
 
-const (
-	dbFlag = "mysql"
-)
-
 func main() {
 	// CLI options parse
 	configFile := flag.String("c", "config.yaml", "Config file")

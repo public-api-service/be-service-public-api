@@ -16,7 +16,6 @@ import (
 )
 
 type publicAPIUseCase struct {
-	publicAPIUsecase   domain.PublicAPIUseCase
 	publicAPIMySQLRepo domain.PublicAPIMySQLRepo
 	productGRPCRepo    domain.ProductGRPCRepo
 	customerGRPCRepo   domain.CustomerGRPCRepo

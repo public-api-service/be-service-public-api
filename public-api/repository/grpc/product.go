@@ -198,12 +198,6 @@ func (m *grpcRepositoryProduct) GetAllProduct(ctx context.Context, request domai
 		Order = *request.Order
 	}
 
-	if request.Order == nil {
-		Order = ""
-	} else {
-		Order = *request.Order
-	}
-
 	client := grpcProduct.NewProductServiceClient(conn)
 	res, err := client.GetAllProduct(ctx, &grpcProduct.RequestAdditionalData{
 		Id:         int32(ID),
