@@ -87,6 +87,25 @@ func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Contex
 	return nil
 }
 
+func (db *mysqlPublicAPIRepository) IsExistReversalAccount(ctx context.Context, request string) (err error) {
+	var count int
+	query := `SELECT COUNT(id) FROM transactions WHERE transactionUniqueId = ?`
+
+	err = db.Conn.QueryRowContext(ctx, query, request).Scan(&count)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = errors.New("Data not exist")
+		}
+	}
+
+	if count > 0 {
+		err = errors.New("Duplicate reversal account")
+		return err
+	}
+
+	return
+}
+
 func (db *mysqlPublicAPIRepository) GetDataMerchantExist(ctx context.Context, merchantID string) (err error) {
 	var count int
 	query := `SELECT COUNT(id) FROM oauth WHERE client_id = ?`

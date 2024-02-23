@@ -242,6 +242,10 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 			request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = lastInvoice
 
 		}
+
+		if err.Error() == "Merchant not exist" {
+			responseCode = "17"
+		}
 		if header, ok := request["header"].(map[string]interface{}); ok {
 			if details, ok := header["details"].(map[string]interface{}); ok {
 				details["statusCode"] = "00"
@@ -301,28 +305,43 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	productID := matches[1]
 
 	transaction := request["transaction"].(map[string]interface{})
+	additionalTxnFields := transaction["additionalTxnFields"].(map[string]interface{})
 	res, err := ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionRequest{
 		ProductID:            productID,
 		LocalTransactionDate: transaction["transmissionDateTime"].(string),
 		LocalTransactionTime: transaction["localTransactionTime"].(string),
 		MerchantTerminalId:   transaction["merchantTerminalId"].(string),
 		MerchantIdentifier:   transaction["merchantIdentifier"].(string),
+		TransactionUniqueId:  additionalTxnFields["transactionUniqueId"].(string),
 	})
 	if err != nil {
+		if header, ok := request["header"].(map[string]interface{}); ok {
+			if details, ok := header["details"].(map[string]interface{}); ok {
+				details["statusCode"] = "00"
+			}
+		}
+		responseCode := "12"
+		termAndCondition := "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
+
 		log.Error("Err usecase  : ", err)
 		if err.Error() == "Data not found" {
-			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+			responseCode = "16"
 		}
 
 		if err.Error() == "Merchant not exist" || err.Error() == "Invalid merchant identifier" {
-			if header, ok := request["header"].(map[string]interface{}); ok {
-				if details, ok := header["details"].(map[string]interface{}); ok {
-					details["statusCode"] = "00"
-				}
-			}
-			return c.Status(fasthttp.StatusEarlyHints).JSON(request)
+			responseCode = "12"
 		}
-		return err
+
+		if err.Error() == "Duplicate reversal account" {
+			responseCode = "34"
+		}
+
+		if transaction, ok := request["transaction"].(map[string]interface{}); ok {
+			transaction["responseCode"] = responseCode
+			transaction["termsAndConditions"] = termAndCondition
+		}
+
+		return c.Status(fasthttp.StatusOK).JSON(request)
 	}
 
 	// log.Info(res)

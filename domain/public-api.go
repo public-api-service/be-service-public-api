@@ -227,6 +227,7 @@ type PublicAPIUseCase interface {
 type PublicAPIMySQLRepo interface {
 	InsertOriginalTransaction(ctx context.Context, request TransactionRequest) (err error)
 	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
+	IsExistReversalAccount(ctx context.Context, request string) (err error)
 }
 
 type PublicAPIGRPCRepo interface {
