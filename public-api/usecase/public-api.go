@@ -89,10 +89,10 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	}
 
 	// Validation MerchantTerminalIdentifier
-	if request.MerchantTerminalId != request.MerchantTerminalId+"    " {
-		err = errors.New("Invalid merchant identifier")
-		return response, err
-	}
+	// if request.MerchantTerminalId != request.MerchantIdentifier+"    " {
+	// 	err = errors.New("Invalid merchant identifier")
+	// 	return response, err
+	// }
 
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
