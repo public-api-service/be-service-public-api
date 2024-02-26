@@ -188,13 +188,6 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
 	}
-
-	var req domain.RequestMarshal
-	err = json.Unmarshal(jsonString, &req)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
 	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
 	matches := productIDRegex.FindStringSubmatch(string(jsonString))
 	if len(matches) != 2 {
@@ -202,35 +195,52 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
 	}
 	productID := matches[1]
-	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-		delete(transaction, "merchantLocation")
-		transaction["responseCode"] = "00"
+
+	regex := `\"request\"\s*:\s*\{`
+	re := regexp.MustCompile(regex)
+
+	var transaction, header, detail map[string]interface{}
+	if re.MatchString(string(jsonString)) {
+		log.Info("Request menggunakan param request")
+		requestJSON := request["request"].(map[string]interface{})
+		transaction = requestJSON["transaction"].(map[string]interface{})
+		header = requestJSON["header"].(map[string]interface{})
+		detail = header["details"].(map[string]interface{})
+
+	} else {
+		log.Info("Request tidak menggunakan param request")
+		transaction = request["transaction"].(map[string]interface{})
+		header = request["header"].(map[string]interface{})
+		detail = header["details"].(map[string]interface{})
 	}
+
 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
 		ProductID:                      productID,
-		Signature:                      req.Header.Signature,
-		ProductCategoryCode:            req.Header.Details.ProductCategoryCode,
-		SpecVersion:                    req.Header.Details.SpecVersion,
-		PrimaryAccountNumber:           req.Transaction.PrimaryAccountNumber,
-		ProcessingCode:                 req.Transaction.ProcessingCode,
-		TransactionAmount:              req.Transaction.TransactionAmount,
-		TransmissionDateTime:           req.Transaction.TransmissionDateTime,
-		SystemTraceAuditNumber:         req.Transaction.SystemTraceAuditNumber,
-		LocalTransactionTime:           req.Transaction.LocalTransactionTime,
-		LocalTransactionDate:           req.Transaction.LocalTransactionDate,
-		MerchantCategoryCode:           req.Transaction.MerchantCategoryCode,
-		PointOfServiceEntryMode:        req.Transaction.PointOfServiceEntryMode,
-		AcquiringInstitutionIdentifier: req.Transaction.AcquiringInstitutionIdentifier,
-		RetrievalReferenceNumber:       req.Transaction.RetrievalReferenceNumber,
-		MerchantTerminalId:             req.Transaction.MerchantTerminalID,
-		MerchantIdentifier:             req.Transaction.MerchantIdentifier,
-		MerchantLocation:               req.Transaction.MerchantLocation,
-		TransactionCurrencyCode:        req.Transaction.TransactionCurrencyCode,
-		TransactionUniqueId:            req.Transaction.AdditionalTxnFields.TransactionUniqueID,
-		CorrelatedTransactionUniqueId:  req.Transaction.AdditionalTxnFields.CorrelatedTransactionUniqueID,
+		Signature:                      header["signature"].(string),
+		ProductCategoryCode:            detail["productCategoryCode"].(string),
+		SpecVersion:                    detail["specVersion"].(string),
+		PrimaryAccountNumber:           transaction["primaryAccountNumber"].(string),
+		ProcessingCode:                 transaction["processingCode"].(string),
+		TransactionAmount:              transaction["transactionAmount"].(string),
+		TransmissionDateTime:           transaction["transmissionDateTime"].(string),
+		SystemTraceAuditNumber:         transaction["systemTraceAuditNumber"].(string),
+		LocalTransactionTime:           transaction["localTransactionTime"].(string),
+		LocalTransactionDate:           transaction["localTransactionDate"].(string),
+		MerchantCategoryCode:           transaction["merchantCategoryCode"].(string),
+		PointOfServiceEntryMode:        transaction["pointOfServiceEntryMode"].(string),
+		AcquiringInstitutionIdentifier: transaction["acquiringInstitutionIdentifier"].(string),
+		RetrievalReferenceNumber:       transaction["retrievalReferenceNumber"].(string),
+		MerchantTerminalId:             transaction["merchantTerminalId"].(string),
+		MerchantIdentifier:             transaction["merchantIdentifier"].(string),
+		MerchantLocation:               transaction["merchantLocation"].(string),
+		TransactionCurrencyCode:        transaction["transactionCurrencyCode"].(string),
+		TransactionUniqueId:            transaction["additionalTxnFields"].(map[string]interface{})["transactionUniqueId"].(string),
+		CorrelatedTransactionUniqueId:  transaction["additionalTxnFields"].(map[string]interface{})["correlatedTransactionUniqueId"].(string),
 		Status:                         "Original",
 	})
 	if err != nil {
+		delete(transaction, "merchantLocation")
+		transaction["responseCode"] = "00"
 		responseCode := "13"
 		log.Error("Error : ", err)
 		log.Info(err.Error())
@@ -243,17 +253,12 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		if err.Error() == "Merchant not exist" {
 			responseCode = "17"
 		}
-		if header, ok := request["header"].(map[string]interface{}); ok {
-			if details, ok := header["details"].(map[string]interface{}); ok {
-				details["statusCode"] = "00"
-			}
-		}
 
-		if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-			transaction["responseCode"] = responseCode
-			transaction["termsAndConditions"] = termAndCondition
-		}
-		request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
+		detail["statusCode"] = "00"
+
+		transaction["responseCode"] = responseCode
+		transaction["termsAndConditions"] = termAndCondition
+		transaction["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
 
 		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
 		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
@@ -283,7 +288,8 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["expiryDate"] = additionalFields.ExpiryDate
 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
-
+	delete(transaction, "merchantLocation")
+	transaction["responseCode"] = "00"
 	return c.Status(fiber.StatusOK).JSON(request)
 }
 
