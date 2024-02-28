@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
@@ -128,4 +129,12 @@ func SendMessageToDiscord(webhookURL string, message string) (err error) {
 	}
 
 	return nil
+}
+
+func GenerateRandomNumber() (response string) {
+	// Generate a random number with 6 digits
+	randomNumber := rand.Intn(900000) + 100000
+
+	response = strconv.Itoa(randomNumber)
+	return response
 }

@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"be-service-public-api/domain"
-	"be-service-public-api/helper"
 	"context"
 	"errors"
 	"fmt"
@@ -68,36 +67,39 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 }
 
 func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
-	// validate transaction currency
-	currencyCode, err := helper.IsValidCurrencyCode(request.TransactionCurrencyCode)
+	lastID, err := pu.publicAPIMySQLRepo.LastTransaction(ctx)
 	if err != nil {
-		err = errors.New("Invalid currency")
-		return response, err
+		log.Error(err)
+		return
 	}
 
-	err = helper.IsValidAmount(request.TransactionAmount, currencyCode)
-	if err != nil {
-		log.Error("Invalid amount format in current ", currencyCode)
-		err = errors.New("Invalid amount")
-		return response, err
+	lastIDAI := lastID + 1
+
+	var lastIDStr string
+
+	if lastID >= 1000 {
+		lastIDStr = "0" + strconv.Itoa(int(lastIDAI))
 	}
 
-	err = pu.publicAPIMySQLRepo.GetDataMerchantExist(ctx, request.MerchantTerminalId)
-	if err != nil {
-		return response, err
+	if lastID > 100 {
+		lastIDStr = "0" + strconv.Itoa(int(lastIDAI))
 	}
 
-	// Validation MerchantTerminalIdentifier
-	// if request.MerchantTerminalId != request.MerchantIdentifier+"    " {
-	// 	err = errors.New("Invalid merchant identifier")
-	// 	return response, err
-	// }
+	if lastID >= 10 {
+		lastIDStr = "00" + strconv.Itoa(int(lastIDAI))
+	}
+
+	if lastID < 10 {
+		lastIDStr = "000" + strconv.Itoa(int(lastIDAI))
+	}
+
+	response.RedemptionPin = lastIDStr
 
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal
-		fmt.Println("Error converting ProductID:", err)
-		return
+		log.Error("Error converting ProductID:", err)
+		return response, err
 	}
 	resProduct, err := pu.productGRPCRepo.GetProductByID(ctx, productID)
 	if err != nil {

@@ -126,3 +126,16 @@ func (db *mysqlPublicAPIRepository) GetDataMerchantExist(ctx context.Context, me
 
 	return
 }
+
+func (db *mysqlPublicAPIRepository) LastTransaction(ctx context.Context) (lastInsertID int64, err error) {
+	query := `SELECT MAX(id) FROM transactions`
+
+	err = db.Conn.QueryRowContext(ctx, query).Scan(&lastInsertID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = errors.New("Data not exist")
+		}
+	}
+
+	return lastInsertID, nil
+}

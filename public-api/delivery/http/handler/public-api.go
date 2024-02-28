@@ -4,10 +4,8 @@ import (
 	"be-service-public-api/domain"
 	"be-service-public-api/helper"
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	log "github.com/sirupsen/logrus"
@@ -131,94 +129,149 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 }
 
 // func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
-// 	var request domain.JsonRequest
+// 	formattedDate := time.Now().Format("060102")
+// 	formatTimeStamp := time.Now().Format("150405000")
+// 	InvoiceFormat := "NRT-DN-BH"
+
+// 	termAndCondition := "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
+
+// 	lastInvoice := fmt.Sprintf("%s-%s-%s", InvoiceFormat, formattedDate, formatTimeStamp)
+
+// 	var request map[string]interface{}
 // 	if err := c.BodyParser(&request); err != nil {
 // 		log.Println(err)
 // 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 // 	}
 
-// 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), request)
+// 	jsonString, err := json.Marshal(request)
 // 	if err != nil {
-// 		log.Error("Error get key : ", err)
-// 		if err.Error() == "Data not found" {
-// 			return helper.HttpSimpleResponse(c, fasthttp.StatusNotFound)
+// 		log.Println(err)
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
+// 	}
+// 	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
+// 	matches := productIDRegex.FindStringSubmatch(string(jsonString))
+// 	if len(matches) != 2 {
+// 		log.Println("Failed to extract productID")
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
+// 	}
+// 	productID := matches[1]
+
+// 	regex := `\"request\"\s*:\s*\{`
+// 	re := regexp.MustCompile(regex)
+
+// 	var transaction, header, detail map[string]interface{}
+// 	if re.MatchString(string(jsonString)) {
+// 		log.Info("Request menggunakan param request")
+// 		requestJSON := request["request"].(map[string]interface{})
+// 		transaction = requestJSON["transaction"].(map[string]interface{})
+// 		header = requestJSON["header"].(map[string]interface{})
+// 		detail = header["details"].(map[string]interface{})
+
+// 	} else {
+// 		log.Info("Request tidak menggunakan param request")
+// 		transaction = request["transaction"].(map[string]interface{})
+// 		header = request["header"].(map[string]interface{})
+// 		detail = header["details"].(map[string]interface{})
+// 	}
+
+// 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
+// 		ProductID:                      productID,
+// 		Signature:                      header["signature"].(string),
+// 		ProductCategoryCode:            detail["productCategoryCode"].(string),
+// 		SpecVersion:                    detail["specVersion"].(string),
+// 		PrimaryAccountNumber:           transaction["primaryAccountNumber"].(string),
+// 		ProcessingCode:                 transaction["processingCode"].(string),
+// 		TransactionAmount:              transaction["transactionAmount"].(string),
+// 		TransmissionDateTime:           transaction["transmissionDateTime"].(string),
+// 		SystemTraceAuditNumber:         transaction["systemTraceAuditNumber"].(string),
+// 		LocalTransactionTime:           transaction["localTransactionTime"].(string),
+// 		LocalTransactionDate:           transaction["localTransactionDate"].(string),
+// 		MerchantCategoryCode:           transaction["merchantCategoryCode"].(string),
+// 		PointOfServiceEntryMode:        transaction["pointOfServiceEntryMode"].(string),
+// 		AcquiringInstitutionIdentifier: transaction["acquiringInstitutionIdentifier"].(string),
+// 		RetrievalReferenceNumber:       transaction["retrievalReferenceNumber"].(string),
+// 		MerchantTerminalId:             transaction["merchantTerminalId"].(string),
+// 		MerchantIdentifier:             transaction["merchantIdentifier"].(string),
+// 		MerchantLocation:               transaction["merchantLocation"].(string),
+// 		TransactionCurrencyCode:        transaction["transactionCurrencyCode"].(string),
+// 		TransactionUniqueId:            transaction["additionalTxnFields"].(map[string]interface{})["transactionUniqueId"].(string),
+// 		CorrelatedTransactionUniqueId:  transaction["additionalTxnFields"].(map[string]interface{})["correlatedTransactionUniqueId"].(string),
+// 		Status:                         "Original",
+// 	})
+// 	if err != nil {
+// 		delete(transaction, "merchantLocation")
+// 		transaction["responseCode"] = "00"
+// 		responseCode := "13"
+// 		log.Error("Error : ", err)
+// 		log.Info(err.Error())
+// 		if err.Error() == "rpc error: code = Unknown desc = Data not found" {
+// 			responseCode = "00"
+// 			request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = lastInvoice
+
 // 		}
-// 		return err
+
+// 		if err.Error() == "Merchant not exist" {
+// 			responseCode = "17"
+// 		}
+
+// 		detail["statusCode"] = "00"
+
+// 		transaction["responseCode"] = responseCode
+// 		transaction["termsAndConditions"] = termAndCondition
+// 		transaction["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
+
+// 		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
+// 		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
+// 		if err != nil {
+// 			return nil
+// 		}
+
+// 		return c.Status(fasthttp.StatusOK).JSON(request)
 // 	}
 
 // 	// log.Info(res)
 
 // 	additionalFields := domain.AdditionalFields{
-// 		ActivationAccountNumber:       res.ActivationAccountNumber,
-// 		BalanceAmount:                 res.BalanceAmount,
-// 		CorrelatedTransactionUniqueId: request.Transaction.AdditionalTxnFields.CorrelatedTransactionUniqueId,
-// 		ExpiryDate:                    res.ExpiryDate,
-// 		ProductId:                     request.Transaction.AdditionalTxnFields.ProductId,
-// 		RedemptionAccountNumber:       res.RedemptionAccountNumber,
-// 		RedemptionPin:                 "1234",
-// 		TransactionUniqueId:           request.Transaction.AdditionalTxnFields.TransactionUniqueId,
+// 		ActivationAccountNumber: res.ActivationAccountNumber,
+// 		BalanceAmount:           res.BalanceAmount,
+// 		ExpiryDate:              res.ExpiryDate,
+// 		RedemptionAccountNumber: res.RedemptionAccountNumber,
 // 	}
 
-// 	response := request
-// 	response.Transaction.AdditionalTxnFields = additionalFields
-
-// 	fullResponse := map[string]interface{}{
-// 		"response": response,
+// 	if header, ok := request["header"].(map[string]interface{}); ok {
+// 		if details, ok := header["details"].(map[string]interface{}); ok {
+// 			details["statusCode"] = "00"
+// 		}
 // 	}
-// 	return c.Status(fiber.StatusOK).JSON(fullResponse)
+
+// 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["activationAccountNumber"] = additionalFields.ActivationAccountNumber
+// 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
+// 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["expiryDate"] = additionalFields.ExpiryDate
+// 	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
+// 	delete(transaction, "merchantLocation")
+// 	transaction["responseCode"] = "00"
+// 	return c.Status(fiber.StatusOK).JSON(request)
 // }
 
 func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
-	formattedDate := time.Now().Format("060102")
-	formatTimeStamp := time.Now().Format("150405000")
-	InvoiceFormat := "NRT-DN-BH"
-
-	termAndCondition := "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
-
-	lastInvoice := fmt.Sprintf("%s-%s-%s", InvoiceFormat, formattedDate, formatTimeStamp)
-
 	var request map[string]interface{}
 	if err := c.BodyParser(&request); err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 	}
 
-	jsonString, err := json.Marshal(request)
-	if err != nil {
-		log.Println(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
-	}
-	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
-	matches := productIDRegex.FindStringSubmatch(string(jsonString))
-	if len(matches) != 2 {
-		log.Println("Failed to extract productID")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
-	}
-	productID := matches[1]
-
-	regex := `\"request\"\s*:\s*\{`
-	re := regexp.MustCompile(regex)
-
-	var transaction, header, detail map[string]interface{}
-	if re.MatchString(string(jsonString)) {
-		log.Info("Request menggunakan param request")
-		requestJSON := request["request"].(map[string]interface{})
-		transaction = requestJSON["transaction"].(map[string]interface{})
-		header = requestJSON["header"].(map[string]interface{})
-		detail = header["details"].(map[string]interface{})
-
-	} else {
-		log.Info("Request tidak menggunakan param request")
-		transaction = request["transaction"].(map[string]interface{})
-		header = request["header"].(map[string]interface{})
-		detail = header["details"].(map[string]interface{})
-	}
+	// Procesed JSON Request
+	requestJSON := request["request"].(map[string]interface{})
+	header := requestJSON["header"].(map[string]interface{})
+	details := header["details"].(map[string]interface{})
+	transaction := requestJSON["transaction"].(map[string]interface{})
+	additionalTxnFields := transaction["additionalTxnFields"].(map[string]interface{})
 
 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
-		ProductID:                      productID,
+		ProductID:                      additionalTxnFields["productId"].(string),
 		Signature:                      header["signature"].(string),
-		ProductCategoryCode:            detail["productCategoryCode"].(string),
-		SpecVersion:                    detail["specVersion"].(string),
+		ProductCategoryCode:            details["productCategoryCode"].(string),
+		SpecVersion:                    details["specVersion"].(string),
 		PrimaryAccountNumber:           transaction["primaryAccountNumber"].(string),
 		ProcessingCode:                 transaction["processingCode"].(string),
 		TransactionAmount:              transaction["transactionAmount"].(string),
@@ -234,63 +287,38 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		MerchantIdentifier:             transaction["merchantIdentifier"].(string),
 		MerchantLocation:               transaction["merchantLocation"].(string),
 		TransactionCurrencyCode:        transaction["transactionCurrencyCode"].(string),
-		TransactionUniqueId:            transaction["additionalTxnFields"].(map[string]interface{})["transactionUniqueId"].(string),
-		CorrelatedTransactionUniqueId:  transaction["additionalTxnFields"].(map[string]interface{})["correlatedTransactionUniqueId"].(string),
-		Status:                         "Original",
+		TransactionUniqueId:            additionalTxnFields["transactionUniqueId"].(string),
+		CorrelatedTransactionUniqueId:  additionalTxnFields["correlatedTransactionUniqueId"].(string),
+		Status:                         "Digital Account Request",
 	})
-	if err != nil {
-		delete(transaction, "merchantLocation")
-		transaction["responseCode"] = "00"
-		responseCode := "13"
-		log.Error("Error : ", err)
-		log.Info(err.Error())
-		if err.Error() == "rpc error: code = Unknown desc = Data not found" {
-			responseCode = "00"
-			request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = lastInvoice
 
-		}
-
-		if err.Error() == "Merchant not exist" {
-			responseCode = "17"
-		}
-
-		detail["statusCode"] = "00"
-
-		transaction["responseCode"] = responseCode
-		transaction["termsAndConditions"] = termAndCondition
-		transaction["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = "C000000000000"
-
-		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
-		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
-		if err != nil {
-			return nil
-		}
-
-		return c.Status(fasthttp.StatusOK).JSON(request)
-	}
-
-	// log.Info(res)
-
-	additionalFields := domain.AdditionalFields{
-		ActivationAccountNumber: res.ActivationAccountNumber,
-		BalanceAmount:           res.BalanceAmount,
-		ExpiryDate:              res.ExpiryDate,
-		RedemptionAccountNumber: res.RedemptionAccountNumber,
-	}
-
-	if header, ok := request["header"].(map[string]interface{}); ok {
-		if details, ok := header["details"].(map[string]interface{}); ok {
-			details["statusCode"] = "00"
-		}
-	}
-
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["activationAccountNumber"] = additionalFields.ActivationAccountNumber
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["expiryDate"] = additionalFields.ExpiryDate
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["redemptionAccountNumber"] = additionalFields.RedemptionAccountNumber
-	delete(transaction, "merchantLocation")
+	details["statusCode"] = "00"
 	transaction["responseCode"] = "00"
-	return c.Status(fiber.StatusOK).JSON(request)
+	transaction["authIdentificationResponse"] = "123456"
+	delete(transaction, "merchantLocation")
+	responseJSON := make(map[string]interface{})
+	if err != nil {
+		transaction["authIdentificationResponse"] = "000000"
+		additionalTxnFields["redemptionAccountNumber"] = "XXBNC5HR7ZPN43GQ"
+		additionalTxnFields["activationAccountNumber"] = "6039537201000000000"
+		additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
+		additionalTxnFields["redemptionPin"] = res.RedemptionPin
+		additionalTxnFields["expiryDate"] = "491201"
+		transaction["termsAndConditions"] = "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
+		responseJSON["response"] = request["request"]
+		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
+	}
+
+	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber()
+	additionalTxnFields["activationAccountNumber"] = res.ActivationAccountNumber
+	additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
+	additionalTxnFields["redemptionAccountNumber"] = res.RedemptionAccountNumber
+	additionalTxnFields["redemptionPin"] = res.RedemptionPin
+	additionalTxnFields["expiryDate"] = res.ExpiryDate
+
+	log.Info(res)
+
+	return c.JSON(request)
 }
 
 func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
