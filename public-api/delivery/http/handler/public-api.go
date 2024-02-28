@@ -322,7 +322,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
-	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(4)
+	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(6)
 	additionalTxnFields["activationAccountNumber"] = res.ActivationAccountNumber
 	additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
 	additionalTxnFields["redemptionAccountNumber"] = res.RedemptionAccountNumber
@@ -399,7 +399,7 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
-	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(4)
+	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(6)
 	additionalTxnFields["balanceAmount"] = "C000000000000"
 
 	responseJSON["response"] = request["request"]
