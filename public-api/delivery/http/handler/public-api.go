@@ -298,27 +298,41 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	delete(transaction, "merchantLocation")
 	responseJSON := make(map[string]interface{})
 	if err != nil {
+		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
-		additionalTxnFields["redemptionAccountNumber"] = "XXBNC5HR7ZPN43GQ"
-		additionalTxnFields["activationAccountNumber"] = "6039537201000000000"
+		additionalTxnFields["redemptionAccountNumber"] = helper.GenerateRandomString(len("XXBNC5HR7ZPN43GQ"))
+		additionalTxnFields["activationAccountNumber"] = helper.GenerateRandomNumber(len("6039537201000000000"))
 		additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
 		additionalTxnFields["redemptionPin"] = res.RedemptionPin
-		additionalTxnFields["expiryDate"] = "491201"
+		additionalTxnFields["expiryDate"] = helper.GenerateRandomNumber(len("491201"))
 		transaction["termsAndConditions"] = "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
 		responseJSON["response"] = request["request"]
+		jsonString, errr := json.Marshal(responseJSON)
+		if errr != nil {
+			log.Error(err)
+			return c.Status(fasthttp.StatusOK).JSON(responseJSON)
+		}
+
+		log.Info("Try to send log to discord")
+		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION** :bangbang: :bangbang:  \n\n" + "***error log : *** \n" + err.Error() + "\n\n ***request : *** \n " + string(jsonString)
+		errrr := helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
+		if errrr != nil {
+			log.Error(err)
+			return nil
+		}
 		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
-	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber()
+	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(4)
 	additionalTxnFields["activationAccountNumber"] = res.ActivationAccountNumber
-	additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
+	additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
 	additionalTxnFields["redemptionAccountNumber"] = res.RedemptionAccountNumber
 	additionalTxnFields["redemptionPin"] = res.RedemptionPin
 	additionalTxnFields["expiryDate"] = res.ExpiryDate
 
-	log.Info(res)
+	responseJSON["response"] = request["request"]
 
-	return c.JSON(request)
+	return c.JSON(responseJSON)
 }
 
 func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {

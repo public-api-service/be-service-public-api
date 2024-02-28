@@ -1,0 +1,1 @@
+ALTER TABLE transactions MODIFY COLUMN status VARCHAR(100) NOT NULL;

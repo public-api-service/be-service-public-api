@@ -150,7 +150,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		expired = currentTime.AddDate(number, 0, 0)
 	}
 
-	response.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+	response.ExpiryDate = expired.Format("060102")
 
 	if err != nil {
 		return response, err
@@ -159,7 +159,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	request.ActivationAccountNumber = paramKeyNumberStr
 	request.BalanceAmount = int(resProduct.FinalPrice)
 	request.RedemptionAccountNumber = resProduct.SKU
-	request.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+	request.ExpiryDate = expired.Format("060102")
 
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
 	if err != nil {
@@ -251,7 +251,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		expired = currentTime.AddDate(number, 0, 0)
 	}
 
-	response.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+	response.ExpiryDate = expired.Format("060102")
 
 	if err != nil {
 		return response, err
@@ -260,7 +260,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 	request.ActivationAccountNumber = paramKeyNumberStr
 	request.BalanceAmount = int(resProduct.FinalPrice)
 	request.RedemptionAccountNumber = resProduct.SKU
-	request.ExpiryDate = expired.Format("2006-01-02 15:04:05")
+	request.ExpiryDate = expired.Format("060102")
 
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
 	if err != nil {

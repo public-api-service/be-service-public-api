@@ -107,6 +107,7 @@ func IsValidAmount(amount, currencyCode string) error {
 
 func SendMessageToDiscord(webhookURL string, message string) (err error) {
 	// Membuat payload pesan dalam format JSON
+	message = message[:2000]
 	payload := map[string]string{"content": message}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -131,10 +132,24 @@ func SendMessageToDiscord(webhookURL string, message string) (err error) {
 	return nil
 }
 
-func GenerateRandomNumber() (response string) {
-	// Generate a random number with 6 digits
-	randomNumber := rand.Intn(900000) + 100000
+func GenerateRandomNumber(length int) (response string) {
+	characters := "0123456789"
 
-	response = strconv.Itoa(randomNumber)
-	return response
+	// Buat string acak dengan panjang yang diinginkan
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = characters[rand.Intn(len(characters))]
+	}
+	return string(result)
+}
+
+func GenerateRandomString(length int) (response string) {
+	characters := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	// Buat string acak dengan panjang yang diinginkan
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = characters[rand.Intn(len(characters))]
+	}
+	return string(result)
 }

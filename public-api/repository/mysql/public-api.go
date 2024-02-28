@@ -132,9 +132,7 @@ func (db *mysqlPublicAPIRepository) LastTransaction(ctx context.Context) (lastIn
 
 	err = db.Conn.QueryRowContext(ctx, query).Scan(&lastInsertID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = errors.New("Data not exist")
-		}
+		return
 	}
 
 	return lastInsertID, nil
