@@ -3,9 +3,7 @@ package usecase
 import (
 	"be-service-public-api/domain"
 	"context"
-	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -169,32 +167,6 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 }
 
 func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
-	// Validation MerchantTerminalID
-	err = pu.publicAPIMySQLRepo.IsExistReversalAccount(ctx, request.TransactionUniqueId)
-	if err != nil {
-		return response, err
-	}
-	err = pu.publicAPIMySQLRepo.GetDataMerchantExist(ctx, request.MerchantTerminalId)
-	if err != nil {
-		return response, err
-	}
-
-	// Validation MerchantTerminalIdentifier
-	if request.MerchantTerminalId != request.MerchantTerminalId+"    " {
-		err = errors.New("Invalid merchant identifier")
-		return response, err
-	}
-
-	regex := regexp.MustCompile(`^[0-9]+$`)
-
-	// Lakukan validasi
-	if !regex.MatchString(request.LocalTransactionTime) {
-		return response, errors.New("Invalid local transaction time")
-	}
-
-	if !regex.MatchString(request.LocalTransactionDate) {
-		return response, errors.New("Invalid local transaction date")
-	}
 
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {

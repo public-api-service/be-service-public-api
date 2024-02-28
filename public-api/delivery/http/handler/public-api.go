@@ -4,7 +4,6 @@ import (
 	"be-service-public-api/domain"
 	"be-service-public-api/helper"
 	"encoding/json"
-	"regexp"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -342,92 +341,71 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid JSON format"})
 	}
 
-	jsonString, err := json.Marshal(request)
-	if err != nil {
-		log.Println(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal Server Error"})
-	}
-
-	productIDRegex := regexp.MustCompile(`"productId":\s*"([^"]+)"`)
-	matches := productIDRegex.FindStringSubmatch(string(jsonString))
-	if len(matches) != 2 {
-		log.Println("Failed to extract productID")
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to extract productID"})
-	}
-	productID := matches[1]
-
-	transaction := request["transaction"].(map[string]interface{})
+	// Procesed JSON Request
+	requestJSON := request["request"].(map[string]interface{})
+	header := requestJSON["header"].(map[string]interface{})
+	details := header["details"].(map[string]interface{})
+	transaction := requestJSON["transaction"].(map[string]interface{})
 	additionalTxnFields := transaction["additionalTxnFields"].(map[string]interface{})
-	res, err := ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionRequest{
-		ProductID:            productID,
-		LocalTransactionDate: transaction["transmissionDateTime"].(string),
-		LocalTransactionTime: transaction["localTransactionTime"].(string),
-		MerchantTerminalId:   transaction["merchantTerminalId"].(string),
-		MerchantIdentifier:   transaction["merchantIdentifier"].(string),
-		TransactionUniqueId:  additionalTxnFields["transactionUniqueId"].(string),
+
+	_, err = ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionRequest{
+		ProductID:                      additionalTxnFields["productId"].(string),
+		Signature:                      header["signature"].(string),
+		ProductCategoryCode:            details["productCategoryCode"].(string),
+		SpecVersion:                    details["specVersion"].(string),
+		PrimaryAccountNumber:           transaction["primaryAccountNumber"].(string),
+		ProcessingCode:                 transaction["processingCode"].(string),
+		TransactionAmount:              transaction["transactionAmount"].(string),
+		TransmissionDateTime:           transaction["transmissionDateTime"].(string),
+		SystemTraceAuditNumber:         transaction["systemTraceAuditNumber"].(string),
+		LocalTransactionTime:           transaction["localTransactionTime"].(string),
+		LocalTransactionDate:           transaction["localTransactionDate"].(string),
+		MerchantCategoryCode:           transaction["merchantCategoryCode"].(string),
+		PointOfServiceEntryMode:        transaction["pointOfServiceEntryMode"].(string),
+		AcquiringInstitutionIdentifier: transaction["acquiringInstitutionIdentifier"].(string),
+		RetrievalReferenceNumber:       transaction["retrievalReferenceNumber"].(string),
+		MerchantTerminalId:             transaction["merchantTerminalId"].(string),
+		MerchantIdentifier:             transaction["merchantIdentifier"].(string),
+		MerchantLocation:               transaction["merchantLocation"].(string),
+		TransactionCurrencyCode:        transaction["transactionCurrencyCode"].(string),
+		TransactionUniqueId:            additionalTxnFields["transactionUniqueId"].(string),
+		CorrelatedTransactionUniqueId:  additionalTxnFields["correlatedTransactionUniqueId"].(string),
+		Status:                         "Digital Account Reverse",
 	})
+
+	details["statusCode"] = "00"
+	transaction["responseCode"] = "00"
+	transaction["authIdentificationResponse"] = "123456"
+	delete(transaction, "merchantLocation")
+	responseJSON := make(map[string]interface{})
 	if err != nil {
-		if header, ok := request["header"].(map[string]interface{}); ok {
-			if details, ok := header["details"].(map[string]interface{}); ok {
-				details["statusCode"] = "00"
-			}
-		}
-		responseCode := "12"
-		termAndCondition := "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
-
-		log.Error("Err usecase  : ", err)
-		if err.Error() == "Data not found" {
-			responseCode = "16"
+		log.Error(err)
+		transaction["authIdentificationResponse"] = "000000"
+		additionalTxnFields["balanceAmount"] = "C000000000000"
+		responseJSON["response"] = request["request"]
+		jsonString, errr := json.Marshal(responseJSON)
+		if errr != nil {
+			log.Error(err)
+			return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 		}
 
-		if err.Error() == "Merchant not exist" || err.Error() == "Invalid merchant identifier" {
-			responseCode = "12"
+		log.Info("Try to send log to discord")
+		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION REVERSE** :bangbang: :bangbang:  \n\n" + "***error log : *** \n" + err.Error() + "\n\n ***request : *** \n " + string(jsonString)
+		errrr := helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
+		if errrr != nil {
+			log.Error(err)
+			return nil
 		}
-
-		if err.Error() == "Duplicate reversal account" {
-			responseCode = "34"
-		}
-
-		if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-			transaction["responseCode"] = responseCode
-			transaction["termsAndConditions"] = termAndCondition
-		}
-
-		msgTopic := ":bangbang: :bangbang: **PUBLIC API ERROR DIGITAL TRANSACTION REVERSAL** :bangbang: :bangbang:  \n\n ***request : *** \n " + string(jsonString) + "\n\n ***error log : *** \n" + err.Error()
-		err = helper.SendMessageToDiscord("https://discord.com/api/webhooks/1210122017584447499/fAXy7V14dtHULFkvWtOmjNH65sMOsve2bDW90BtYbyFVNuudy-3lNE_qFAKmkvjlJ2wH", msgTopic)
-		if err != nil {
-			return err
-		}
-		return c.Status(fasthttp.StatusOK).JSON(request)
+		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
-	// log.Info(res)
+	transaction["authIdentificationResponse"] = helper.GenerateRandomNumber(4)
+	additionalTxnFields["balanceAmount"] = "C000000000000"
 
-	if transaction, ok := request["transaction"].(map[string]interface{}); ok {
-		delete(transaction, "merchantLocation")
-	}
-	additionalFields := domain.AdditionalFields{
-		ActivationAccountNumber: res.ActivationAccountNumber,
-		BalanceAmount:           res.BalanceAmount,
-		ExpiryDate:              res.ExpiryDate,
-		RedemptionAccountNumber: res.RedemptionAccountNumber,
-	}
+	responseJSON["response"] = request["request"]
 
-	request["transaction"].(map[string]interface{})["additionalTxnFields"].(map[string]interface{})["balanceAmount"] = additionalFields.BalanceAmount
-
-	// Add additional fields to the "header" section
-	if header, ok := request["header"].(map[string]interface{}); ok {
-		if details, ok := header["details"].(map[string]interface{}); ok {
-			details["statusCode"] = "00"
-		}
-	}
-
-	if transaction, ok := transaction["transaction"].(map[string]interface{}); ok {
-		transaction["responseCode"] = "00"
-	}
-	return c.Status(fiber.StatusOK).JSON(request)
+	return c.JSON(responseJSON)
 }
-
 func (ph *PublicHandler) Network(c *fiber.Ctx) (err error) {
 	var request map[string]interface{}
 	if err := c.BodyParser(&request); err != nil {

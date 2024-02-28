@@ -107,7 +107,9 @@ func IsValidAmount(amount, currencyCode string) error {
 
 func SendMessageToDiscord(webhookURL string, message string) (err error) {
 	// Membuat payload pesan dalam format JSON
-	message = message[:2000]
+	if len(message) > 2000 {
+		message = message[:2000]
+	}
 	payload := map[string]string{"content": message}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
