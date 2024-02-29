@@ -89,7 +89,7 @@ func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Contex
 
 func (db *mysqlPublicAPIRepository) IsExistReversalAccount(ctx context.Context, request string) (err error) {
 	var count int
-	query := `SELECT COUNT(id) FROM transactions WHERE transactionUniqueId = ?`
+	query := `SELECT COUNT(id) FROM transactions WHERE retrievalReferenceNumber = ?`
 
 	err = db.Conn.QueryRowContext(ctx, query, request).Scan(&count)
 	if err != nil {
@@ -138,16 +138,16 @@ func (db *mysqlPublicAPIRepository) LastTransaction(ctx context.Context) (lastIn
 	return lastInsertID, nil
 }
 
-func (db *mysqlPublicAPIRepository) GetDataDigitalAccountRequest(ctx context.Context, primaryAccountNumber string) (response domain.TransactionDTO, err error) {
-	query := `SELECT signature,productCategoryCode,specVersion,primaryAccountNumber,processingCode,transactionAmount,transmissionDateTime,systemTraceAuditNumber,localTransactionTime,localTransactionDate,merchantCategoryCode,pointOfServiceEntryMode,acquiringInstitutionIdentifier,retrievalReferenceNumber,merchantTerminalId,merchantIdentifier,merchantLocation,transactionCurrencyCode,productID,transactionUniqueId,correlatedTransactionUniqueId,balanceAmount,redemptionAccountNumber,ActivationAccountNumber,expiryDate,status FROM transactions WHERE primaryAccountNumber = ?`
-	rows, err := db.Conn.QueryContext(ctx, query, primaryAccountNumber)
+func (db *mysqlPublicAPIRepository) GetDataDigitalAccountRequest(ctx context.Context, retrievalReferenceNumber string) (response domain.TransactionDTO, err error) {
+	query := `SELECT signature,productCategoryCode,specVersion,primaryAccountNumber,processingCode,transactionAmount,transmissionDateTime,systemTraceAuditNumber,localTransactionTime,localTransactionDate,merchantCategoryCode,pointOfServiceEntryMode,acquiringInstitutionIdentifier,retrievalReferenceNumber,merchantTerminalId,merchantIdentifier,merchantLocation,transactionCurrencyCode,productID,transactionUniqueId,correlatedTransactionUniqueId,balanceAmount,redemptionAccountNumber,ActivationAccountNumber,expiryDate,status FROM transactions WHERE retrievalReferenceNumber = ?`
+	rows, err := db.Conn.QueryContext(ctx, query, retrievalReferenceNumber)
 	if err != nil {
 		// Mengembalikan error jika terjadi kesalahan saat menjalankan query
 		return response, err
 	}
 	defer rows.Close()
 
-	err = db.Conn.QueryRowContext(ctx, query, primaryAccountNumber).Scan(
+	err = db.Conn.QueryRowContext(ctx, query, retrievalReferenceNumber).Scan(
 		&response.Signature,
 		&response.ProductCategoryCode,
 		&response.SpecVersion,

@@ -189,14 +189,14 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 }
 
 func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionDTO) (response domain.AdditionalFields, err error) {
-	resDAR, err := pu.publicAPIMySQLRepo.GetDataDigitalAccountRequest(ctx, request.PrimaryAccountNumber)
+	resDAR, err := pu.publicAPIMySQLRepo.GetDataDigitalAccountRequest(ctx, request.RetrievalReferenceNumber)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
 	response.BalanceAmount = resDAR.TransactionAmount
-	err = pu.publicAPIMySQLRepo.IsExistReversalAccount(ctx, request.TransactionUniqueId)
+	err = pu.publicAPIMySQLRepo.IsExistReversalAccount(ctx, request.RetrievalReferenceNumber)
 	if err != nil {
 		log.Error(err)
 		err = errors.New("Duplicate Digital Account Reversal")
