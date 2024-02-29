@@ -89,7 +89,7 @@ func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Contex
 
 func (db *mysqlPublicAPIRepository) IsExistReversalAccount(ctx context.Context, request string) (err error) {
 	var count int
-	query := `SELECT COUNT(id) FROM transactions WHERE retrievalReferenceNumber = ?`
+	query := `SELECT COUNT(id) FROM transactions WHERE retrievalReferenceNumber = ? AND status != "Digital Account Request"`
 
 	err = db.Conn.QueryRowContext(ctx, query, request).Scan(&count)
 	if err != nil {
