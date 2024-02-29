@@ -15,7 +15,7 @@ func NewMySQLPublicAPIRepository(Conn *sql.DB) domain.PublicAPIMySQLRepo {
 	return &mysqlPublicAPIRepository{Conn}
 }
 
-func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Context, request domain.TransactionRequest) (err error) {
+func (db *mysqlPublicAPIRepository) InsertOriginalTransaction(ctx context.Context, request domain.TransactionDTO) (err error) {
 	// Prepare the SQL query
 	query := `
 		INSERT INTO transactions (
@@ -132,8 +132,53 @@ func (db *mysqlPublicAPIRepository) LastTransaction(ctx context.Context) (lastIn
 
 	err = db.Conn.QueryRowContext(ctx, query).Scan(&lastInsertID)
 	if err != nil {
-		return
+		return 0, nil
 	}
 
 	return lastInsertID, nil
+}
+
+func (db *mysqlPublicAPIRepository) GetDataDigitalAccountRequest(ctx context.Context, primaryAccountNumber string) (response domain.TransactionDTO, err error) {
+	query := `SELECT signature,productCategoryCode,specVersion,primaryAccountNumber,processingCode,transactionAmount,transmissionDateTime,systemTraceAuditNumber,localTransactionTime,localTransactionDate,merchantCategoryCode,pointOfServiceEntryMode,acquiringInstitutionIdentifier,retrievalReferenceNumber,merchantTerminalId,merchantIdentifier,merchantLocation,transactionCurrencyCode,productID,transactionUniqueId,correlatedTransactionUniqueId,balanceAmount,redemptionAccountNumber,ActivationAccountNumber,expiryDate,status FROM transactions WHERE primaryAccountNumber = ?`
+	rows, err := db.Conn.QueryContext(ctx, query, primaryAccountNumber)
+	if err != nil {
+		// Mengembalikan error jika terjadi kesalahan saat menjalankan query
+		return response, err
+	}
+	defer rows.Close()
+
+	err = db.Conn.QueryRowContext(ctx, query, primaryAccountNumber).Scan(
+		&response.Signature,
+		&response.ProductCategoryCode,
+		&response.SpecVersion,
+		&response.PrimaryAccountNumber,
+		&response.ProcessingCode,
+		&response.TransactionAmount,
+		&response.TransmissionDateTime,
+		&response.SystemTraceAuditNumber,
+		&response.LocalTransactionTime,
+		&response.LocalTransactionDate,
+		&response.MerchantCategoryCode,
+		&response.PointOfServiceEntryMode,
+		&response.AcquiringInstitutionIdentifier,
+		&response.RetrievalReferenceNumber,
+		&response.MerchantTerminalId,
+		&response.MerchantIdentifier,
+		&response.MerchantLocation,
+		&response.TransactionCurrencyCode,
+		&response.ProductID,
+		&response.TransactionUniqueId,
+		&response.CorrelatedTransactionUniqueId,
+		&response.BalanceAmount,
+		&response.RedemptionAccountNumber,
+		&response.ActivationAccountNumber,
+		&response.ExpiryDate,
+		&response.Status,
+	)
+	if err != nil {
+		// Mengembalikan error jika terjadi kesalahan saat menjalankan query
+		return response, err
+	}
+
+	return response, nil
 }

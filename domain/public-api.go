@@ -152,7 +152,7 @@ type AdditionalFields struct {
 	ExpiryDate                    string `json:"expiryDate"`
 }
 
-type TransactionRequest struct {
+type TransactionDTO struct {
 	ID                             int64  `json:"id"`
 	Signature                      string `json:"signature"`
 	ProductCategoryCode            string `json:"productCategoryCode"`
@@ -175,7 +175,7 @@ type TransactionRequest struct {
 	ProductID                      string `json:"productId"`
 	TransactionUniqueId            string `json:"transactionUniqueId"`
 	CorrelatedTransactionUniqueId  string `json:"correlatedTransactionUniqueId"`
-	BalanceAmount                  int    `json:"balanceAmount"`
+	BalanceAmount                  string `json:"balanceAmount"`
 	RedemptionAccountNumber        string `json:"redemptionAccountNumber"`
 	ActivationAccountNumber        string `json:"activationAccountNumber"`
 	ExpiryDate                     string `json:"expiryDate"`
@@ -220,14 +220,15 @@ type PublicAPIUseCase interface {
 	GetProduct(ctx context.Context, request int) (response ProductResponseDTO, err error)
 	CheckStok(ctx context.Context, id int32) (err error)
 	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
-	AccountRequest(ctx context.Context, request TransactionRequest) (response AdditionalFields, err error)
-	AccountReverse(ctx context.Context, request TransactionRequest) (response AdditionalFields, err error)
+	AccountRequest(ctx context.Context, request TransactionDTO) (response AdditionalFields, err error)
+	AccountReverse(ctx context.Context, request TransactionDTO) (response AdditionalFields, err error)
 }
 
 type PublicAPIMySQLRepo interface {
-	InsertOriginalTransaction(ctx context.Context, request TransactionRequest) (err error)
+	InsertOriginalTransaction(ctx context.Context, request TransactionDTO) (err error)
 	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
 	IsExistReversalAccount(ctx context.Context, request string) (err error)
+	GetDataDigitalAccountRequest(ctx context.Context, primaryAccountNumber string) (response TransactionDTO, err error)
 	LastTransaction(ctx context.Context) (lastID int64, err error)
 }
 

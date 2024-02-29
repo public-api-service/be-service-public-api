@@ -173,7 +173,7 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 // 		detail = header["details"].(map[string]interface{})
 // 	}
 
-// 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
+// 	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionDTO{
 // 		ProductID:                      productID,
 // 		Signature:                      header["signature"].(string),
 // 		ProductCategoryCode:            detail["productCategoryCode"].(string),
@@ -266,7 +266,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	transaction := requestJSON["transaction"].(map[string]interface{})
 	additionalTxnFields := transaction["additionalTxnFields"].(map[string]interface{})
 
-	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionRequest{
+	res, err := ph.PublicAPIUseCase.AccountRequest(c.Context(), domain.TransactionDTO{
 		ProductID:                      additionalTxnFields["productId"].(string),
 		Signature:                      header["signature"].(string),
 		ProductCategoryCode:            details["productCategoryCode"].(string),
@@ -297,14 +297,14 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	delete(transaction, "merchantLocation")
 	responseJSON := make(map[string]interface{})
 	if err != nil {
+		transaction["responseCode"] = "14"
+		if err.Error() == "Invalid amount" {
+			transaction["responseCode"] = "13"
+		}
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
-		additionalTxnFields["redemptionAccountNumber"] = helper.GenerateRandomString(len("XXBNC5HR7ZPN43GQ"))
-		additionalTxnFields["activationAccountNumber"] = helper.GenerateRandomNumber(len("6039537201000000000"))
-		additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
-		additionalTxnFields["redemptionPin"] = res.RedemptionPin
-		additionalTxnFields["expiryDate"] = helper.GenerateRandomNumber(len("491201"))
-		transaction["termsAndConditions"] = "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
+		additionalTxnFields["balanceAmount"] = "C000000000000"
+		// transaction["termsAndConditions"] = "Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999).  Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions of the card will be displayed in this area. The maximum characters allowed are nine hundred and ninety nine (999). Terms and Conditions will be displayed here."
 		responseJSON["response"] = request["request"]
 		jsonString, errr := json.Marshal(responseJSON)
 		if errr != nil {
@@ -348,7 +348,7 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	transaction := requestJSON["transaction"].(map[string]interface{})
 	additionalTxnFields := transaction["additionalTxnFields"].(map[string]interface{})
 
-	_, err = ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionRequest{
+	res, err := ph.PublicAPIUseCase.AccountReverse(c.Context(), domain.TransactionDTO{
 		ProductID:                      additionalTxnFields["productId"].(string),
 		Signature:                      header["signature"].(string),
 		ProductCategoryCode:            details["productCategoryCode"].(string),
@@ -379,9 +379,19 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	delete(transaction, "merchantLocation")
 	responseJSON := make(map[string]interface{})
 	if err != nil {
+
+		additionalTxnFields["balanceAmount"] = "C000000000000"
+		if err.Error() == "Duplicate Digital Account Reversal" {
+			transaction["responseCode"] = "34"
+		}
+
+		if err.Error() == "Invalid transaction local time" || err.Error() == "Invalid transaction local date" {
+			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
+			transaction["responseCode"] = "12"
+		}
+
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
-		additionalTxnFields["balanceAmount"] = "C000000000000"
 		responseJSON["response"] = request["request"]
 		jsonString, errr := json.Marshal(responseJSON)
 		if errr != nil {

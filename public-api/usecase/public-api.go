@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"be-service-public-api/domain"
+	"be-service-public-api/helper"
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -64,7 +66,17 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 	return
 }
 
-func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
+func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionDTO) (response domain.AdditionalFields, err error) {
+	_, err = helper.IsValidCurrencyCode(request.TransactionCurrencyCode)
+	if err != nil {
+		return
+	}
+
+	// amount, err := helper.IsValidAmount(request.TransactionAmount, request.TransactionCurrencyCode)
+	// if err != nil {
+	// 	return
+	// }
+
 	lastID, err := pu.publicAPIMySQLRepo.LastTransaction(ctx)
 	if err != nil {
 		log.Error(err)
@@ -104,6 +116,16 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		return response, err
 	}
 
+	amountInt, err := strconv.Atoi(request.TransactionAmount)
+	if err != nil {
+		return
+	}
+	if resProduct.FinalPrice != float64(amountInt) {
+		log.Error("Invalid amount")
+		err = errors.New("Invalid amount")
+		return response, err
+	}
+
 	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
 		ProductID: request.ProductID,
 		Limit:     "1",
@@ -155,7 +177,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	}
 
 	request.ActivationAccountNumber = paramKeyNumberStr
-	request.BalanceAmount = int(resProduct.FinalPrice)
+	request.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
 	request.RedemptionAccountNumber = resProduct.SKU
 	request.ExpiryDate = expired.Format("060102")
 
@@ -166,7 +188,32 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	return
 }
 
-func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionRequest) (response domain.AdditionalFields, err error) {
+func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionDTO) (response domain.AdditionalFields, err error) {
+	resDAR, err := pu.publicAPIMySQLRepo.GetDataDigitalAccountRequest(ctx, request.PrimaryAccountNumber)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	response.BalanceAmount = resDAR.TransactionAmount
+	err = pu.publicAPIMySQLRepo.IsExistReversalAccount(ctx, request.TransactionUniqueId)
+	if err != nil {
+		log.Error(err)
+		err = errors.New("Duplicate Digital Account Reversal")
+		return response, err
+	}
+
+	validateTransactionLocalTime := helper.ValidateTransactionTime(request.LocalTransactionTime)
+	if !validateTransactionLocalTime {
+		err = errors.New("Invalid transaction local time")
+		return response, err
+	}
+
+	validateTransactionLocalDate := helper.ValidateLocalTransactionDate(request.LocalTransactionDate)
+	if !validateTransactionLocalDate {
+		err = errors.New("Invalid transaction local date")
+		return response, err
+	}
 
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
@@ -174,70 +221,17 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		fmt.Println("Error converting ProductID:", err)
 		return
 	}
-	resProduct, err := pu.productGRPCRepo.GetProductByID(ctx, productID)
+	_, err = pu.productGRPCRepo.GetProductByID(ctx, productID)
 	if err != nil {
 		return response, err
 	}
 
-	res, err := pu.productGRPCRepo.GetListKeyProductByProductIDAndLimit(ctx, domain.RequestProductIDAndLimit{
-		ProductID: request.ProductID,
-		Limit:     "1",
-	})
-
-	if err != nil {
-		log.Error(err)
-		return response, err
-	}
-
-	var paramIDJoinStr, paramKeyNumberStr string
-	for _, v := range res {
-		paramIDJoinStr += strconv.Itoa(int(v.ID)) + ","
-		paramKeyNumberStr += v.NumberKeys + ","
-	}
-
-	if len(paramIDJoinStr) > 0 {
-		paramIDJoinStr = paramIDJoinStr[:len(paramIDJoinStr)-1]
-	}
-
-	if len(paramKeyNumberStr) > 0 {
-		paramKeyNumberStr = paramKeyNumberStr[:len(paramKeyNumberStr)-1]
-	}
-
-	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
-		ProductID: paramIDJoinStr,
-	})
-
-	response.ActivationAccountNumber = paramKeyNumberStr
-	response.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
-	response.RedemptionAccountNumber = resProduct.SKU
-
-	parts := strings.Fields(resProduct.Duration)
-	number, _ := strconv.Atoi(parts[0])
-	unit := parts[1]
-	currentTime := time.Now()
-	var expired time.Time
-
-	if unit == "bulan" {
-		expired = currentTime.AddDate(0, number, 0)
-	} else {
-		expired = currentTime.AddDate(number, 0, 0)
-	}
-
-	response.ExpiryDate = expired.Format("060102")
-
-	if err != nil {
-		return response, err
-	}
-
-	request.ActivationAccountNumber = paramKeyNumberStr
-	request.BalanceAmount = int(resProduct.FinalPrice)
-	request.RedemptionAccountNumber = resProduct.SKU
-	request.ExpiryDate = expired.Format("060102")
-
+	request.BalanceAmount = resDAR.BalanceAmount
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
 	if err != nil {
 		return response, err
 	}
+
 	return
 }
 
