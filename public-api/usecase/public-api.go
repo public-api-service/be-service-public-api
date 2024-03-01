@@ -215,6 +215,16 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		return response, err
 	}
 
+	if resDAR.LocalTransactionDate != request.LocalTransactionDate {
+		err = errors.New("Invalid transaction local date DAR")
+		return response, err
+	}
+
+	if resDAR.LocalTransactionTime != request.LocalTransactionTime {
+		err = errors.New("Invalid transaction local time DAR")
+		return response, err
+	}
+
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal

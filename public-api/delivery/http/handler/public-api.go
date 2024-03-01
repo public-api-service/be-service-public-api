@@ -390,6 +390,11 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 			transaction["responseCode"] = "12"
 		}
 
+		if err.Error() == "Invalid transaction local time DAR" || err.Error() == "Invalid transaction local date DAR" {
+			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
+			transaction["responseCode"] = "12"
+		}
+
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
 		responseJSON["response"] = request["request"]
