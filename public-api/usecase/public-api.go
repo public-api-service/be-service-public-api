@@ -225,6 +225,11 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		return response, err
 	}
 
+	if resDAR.TransactionAmount != request.TransactionAmount {
+		err = errors.New("Invalid balance amount")
+		return response, err
+	}
+
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal

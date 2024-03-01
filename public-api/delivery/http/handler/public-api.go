@@ -395,6 +395,11 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 			transaction["responseCode"] = "12"
 		}
 
+		if err.Error() == "Invalid balance amount" {
+			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
+			transaction["responseCode"] = "13"
+		}
+
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
 		responseJSON["response"] = request["request"]
