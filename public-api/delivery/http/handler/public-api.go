@@ -319,6 +319,17 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 			log.Error(err)
 			return nil
 		}
+		err = ph.PublicAPIUseCase.InsertLog(c.Context(), domain.LogRequest{
+			SystemTraceAuditNumber: transaction["systemTraceAuditNumber"].(string),
+			Request:                requestJSON,
+			Response:               responseJSON,
+			Section:                "Digital Account Request",
+			Status:                 err.Error(),
+		})
+
+		if err != nil {
+			log.Error("Try insert log", err)
+		}
 		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
@@ -330,7 +341,17 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	additionalTxnFields["expiryDate"] = res.ExpiryDate
 
 	responseJSON["response"] = request["request"]
+	err = ph.PublicAPIUseCase.InsertLog(c.Context(), domain.LogRequest{
+		SystemTraceAuditNumber: transaction["systemTraceAuditNumber"].(string),
+		Request:                requestJSON,
+		Response:               responseJSON,
+		Section:                "Digital Account Reverse",
+		Status:                 "Success",
+	})
 
+	if err != nil {
+		log.Error("Try insert log", err)
+	}
 	return c.JSON(responseJSON)
 }
 
@@ -385,19 +406,23 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 			transaction["responseCode"] = "34"
 		}
 
+		if err.Error() == "Invalid balance amount" {
+			transaction["responseCode"] = "13"
+		}
+
 		if err.Error() == "Invalid transaction local time" || err.Error() == "Invalid transaction local date" {
 			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
 			transaction["responseCode"] = "12"
 		}
 
-		if err.Error() == "Invalid transaction local time DAR" || err.Error() == "Invalid transaction local date DAR" {
+		if err.Error() == "Invalid transaction local time DAR" ||
+			err.Error() == "Invalid transaction local date DAR" ||
+			err.Error() == "Invalid Acquiring Institution Identifier" ||
+			err.Error() == "Invalid Retrieval Reference Number" ||
+			err.Error() == "Invalid Merchant Identifier" ||
+			err.Error() == "Invalid Merchant Terminal ID" {
 			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
 			transaction["responseCode"] = "12"
-		}
-
-		if err.Error() == "Invalid balance amount" {
-			additionalTxnFields["balanceAmount"] = "C" + res.BalanceAmount
-			transaction["responseCode"] = "13"
 		}
 
 		log.Error(err)
@@ -416,6 +441,17 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 			log.Error(err)
 			return nil
 		}
+		err = ph.PublicAPIUseCase.InsertLog(c.Context(), domain.LogRequest{
+			SystemTraceAuditNumber: transaction["systemTraceAuditNumber"].(string),
+			Request:                requestJSON,
+			Response:               responseJSON,
+			Section:                "Digital Account Reverse",
+			Status:                 err.Error(),
+		})
+
+		if err != nil {
+			log.Error("Try insert log", err)
+		}
 		return c.Status(fasthttp.StatusOK).JSON(responseJSON)
 	}
 
@@ -423,7 +459,17 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	additionalTxnFields["balanceAmount"] = "C000000000000"
 
 	responseJSON["response"] = request["request"]
+	err = ph.PublicAPIUseCase.InsertLog(c.Context(), domain.LogRequest{
+		SystemTraceAuditNumber: transaction["systemTraceAuditNumber"].(string),
+		Request:                requestJSON,
+		Response:               responseJSON,
+		Section:                "Digital Account Reverse",
+		Status:                 "Success",
+	})
 
+	if err != nil {
+		log.Error("Try insert log", err)
+	}
 	return c.JSON(responseJSON)
 }
 func (ph *PublicHandler) Network(c *fiber.Ctx) (err error) {

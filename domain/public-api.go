@@ -214,6 +214,25 @@ type RequestMarshal struct {
 	} `json:"transaction"`
 }
 
+type DigitalAccountReverseParam struct {
+	ProcessingCode                 string `json:"processingCode"`
+	TransactionAmount              string `json:"transactionAmount"`
+	LocalTransactionTime           string `json:"localTransactionTime"`
+	LocalTransactionDate           string `json:"localTransactionDate"`
+	AcquiringInstitutionIdentifier string `json:"acquiringInstitutionIdentifier"`
+	RetrievalReferenceNumber       string `json:"retrievalReferenceNumber"`
+	MerchantTerminalID             string `json:"merchantTerminalId"`
+	MerchantIdentifier             string `json:"merchantIdentifier"`
+}
+
+type LogRequest struct {
+	SystemTraceAuditNumber string                 `json:"systemTraceAuditNumber"`
+	Request                map[string]interface{} `json:"request"`
+	Response               map[string]interface{} `json:"response"`
+	Section                string                 `json:"section"`
+	Status                 string                 `json:"status"`
+}
+
 type PublicAPIUseCase interface {
 	PostCheckout(ctx context.Context, request RequestDataCheckout) (err error)
 	GetAllProduct(ctx context.Context, request RequestAdditionalData) (response GetAllProductResponse, err error)
@@ -222,6 +241,7 @@ type PublicAPIUseCase interface {
 	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
 	AccountRequest(ctx context.Context, request TransactionDTO) (response AdditionalFields, err error)
 	AccountReverse(ctx context.Context, request TransactionDTO) (response AdditionalFields, err error)
+	InsertLog(ctx context.Context, request LogRequest) (err error)
 }
 
 type PublicAPIMySQLRepo interface {
@@ -229,7 +249,9 @@ type PublicAPIMySQLRepo interface {
 	GetDataMerchantExist(ctx context.Context, merchantID string) (err error)
 	IsExistReversalAccount(ctx context.Context, request string) (err error)
 	GetDataDigitalAccountRequest(ctx context.Context, primaryAccountNumber string) (response TransactionDTO, err error)
+	GetDataDigitalAccountRequestByParam(ctx context.Context, request DigitalAccountReverseParam) (response TransactionDTO, err error)
 	LastTransaction(ctx context.Context) (lastID int64, err error)
+	InsertLog(ctx context.Context, request LogRequest) (err error)
 }
 
 type PublicAPIGRPCRepo interface {

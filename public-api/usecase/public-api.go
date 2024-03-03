@@ -191,8 +191,20 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.TransactionDTO) (response domain.AdditionalFields, err error) {
 	resDAR, err := pu.publicAPIMySQLRepo.GetDataDigitalAccountRequest(ctx, request.RetrievalReferenceNumber)
 	if err != nil {
-		log.Error(err)
-		return
+		if err.Error() != "Not found" {
+			return response, err
+		}
+		resDARParam, _ := pu.publicAPIMySQLRepo.GetDataDigitalAccountRequestByParam(ctx, domain.DigitalAccountReverseParam{
+			ProcessingCode:                 request.ProcessingCode,
+			TransactionAmount:              request.TransactionAmount,
+			LocalTransactionTime:           request.LocalTransactionTime,
+			LocalTransactionDate:           request.LocalTransactionDate,
+			AcquiringInstitutionIdentifier: request.AcquiringInstitutionIdentifier,
+			MerchantTerminalID:             request.MerchantTerminalId,
+			MerchantIdentifier:             request.MerchantIdentifier,
+		})
+		resDAR = resDARParam
+
 	}
 
 	response.BalanceAmount = resDAR.TransactionAmount
@@ -230,6 +242,26 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		return response, err
 	}
 
+	if resDAR.AcquiringInstitutionIdentifier != request.AcquiringInstitutionIdentifier {
+		err = errors.New("Invalid Acquiring Institution Identifier")
+		return response, err
+	}
+
+	if resDAR.RetrievalReferenceNumber != request.RetrievalReferenceNumber {
+		err = errors.New("Invalid Retrieval Reference Number")
+		return response, err
+	}
+
+	if resDAR.MerchantIdentifier != request.MerchantIdentifier {
+		err = errors.New("Invalid Merchant Identifier")
+		return response, err
+	}
+
+	if resDAR.MerchantTerminalId != request.MerchantTerminalId {
+		err = errors.New("Invalid Merchant Terminal ID")
+		return response, err
+	}
+
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
 		// Handle kesalahan jika konversi gagal
@@ -252,6 +284,14 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 
 func (pu *publicAPIUseCase) GetDataMerchantExist(ctx context.Context, merchantID string) (err error) {
 	err = pu.publicAPIMySQLRepo.GetDataMerchantExist(ctx, merchantID)
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (pu *publicAPIUseCase) InsertLog(ctx context.Context, request domain.LogRequest) (err error) {
+	err = pu.publicAPIMySQLRepo.InsertLog(ctx, request)
 	if err != nil {
 		return err
 	}
