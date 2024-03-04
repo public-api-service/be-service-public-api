@@ -302,7 +302,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 			transaction["responseCode"] = "13"
 		}
 		if err.Error() == "Currency code invalid" {
-			transaction["responseCode"] = "00"
+			transaction["responseCode"] = "13"
 		}
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
