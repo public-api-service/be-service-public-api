@@ -301,6 +301,9 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		if err.Error() == "Invalid amount" {
 			transaction["responseCode"] = "13"
 		}
+		if err.Error() == "Currency code invalid" {
+			transaction["responseCode"] = "00"
+		}
 		log.Error(err)
 		transaction["authIdentificationResponse"] = "000000"
 		additionalTxnFields["balanceAmount"] = "C000000000000"
@@ -400,10 +403,13 @@ func (ph *PublicHandler) AccountReverse(c *fiber.Ctx) (err error) {
 	delete(transaction, "merchantLocation")
 	responseJSON := make(map[string]interface{})
 	if err != nil {
-
 		additionalTxnFields["balanceAmount"] = "C000000000000"
 		if err.Error() == "Duplicate Digital Account Reversal" {
 			transaction["responseCode"] = "34"
+		}
+
+		if err.Error() == "rpc error: code = Unknown desc = Data not found" {
+			transaction["responseCode"] = "14"
 		}
 
 		if err.Error() == "Invalid balance amount" {

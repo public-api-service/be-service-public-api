@@ -91,6 +91,10 @@ func IsValidCurrencyCode(code string) (currencyCode string, err error) {
 		return currencyCode, errors.New("Currency code invalid")
 	}
 
+	if currencyCode != "IDR" {
+		return currencyCode, errors.New("Currency code invalid")
+	}
+
 	return
 }
 
