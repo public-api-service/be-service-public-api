@@ -14,17 +14,14 @@ import (
 )
 
 type Config struct {
-	Server             Server             `yaml:"server"`
-	Database           Database           `yaml:"database"`
-	Redis              Redis              `yaml:"redis"`
-	GRPC               GRPC               `yaml:"grpc"`
-	SMTPCredential     SMTPCredential     `yaml:"smtp_credential"`
-	MidtransCredential MidtransCredential `yaml:"midtrans_credential"`
+	Server   Server   `yaml:"server"`
+	Database Database `yaml:"database"`
+	Redis    Redis    `yaml:"redis"`
+	GRPC     GRPC     `yaml:"grpc"`
 }
 
 type GRPC struct {
-	CustomerService HostPort `yaml:"customer_service"`
-	ProductService  HostPort `yaml:"product_service"`
+	ProductService HostPort `yaml:"product_service"`
 }
 
 type HostPort struct {
@@ -194,27 +191,11 @@ var defaultConfig = &Config{
 	},
 
 	GRPC: GRPC{
-		CustomerService: HostPort{
-			Host: "localhost",
-			Port: "58884",
-		},
 		ProductService: HostPort{
-			Host: "128.199.206.202",
+			Host: "localhost",
 			Port: "58883",
 		},
-	},
-	SMTPCredential: SMTPCredential{
-		Host:     "smtp.gmail.com",
-		Port:     587,
-		Username: "testing.luru@gmail.com",
-		Password: "lpoi tiot nnfg qbmc",
-	},
-	MidtransCredential: MidtransCredential{
-		ServerKey:  "Mid-server-7HcQmIq_twOG5LVASfEf7CKY",
-		ClientKey:  "Mid-client-CmNonTNM8pyK60VC",
-		APIEnvType: "Production",
-	},
-}
+	}}
 
 func lookupEnv(parent string, rt reflect.Type, rv reflect.Value) {
 	for i := 0; i < rt.NumField(); i++ {

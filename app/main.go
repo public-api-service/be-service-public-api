@@ -140,40 +140,6 @@ func main() {
 	} else {
 		log.Warn(err)
 	}
-
-	// Initialize Redis
-	// ctx := context.Background()
-	// var dbRedis *redis.Client
-	// if viper.GetBool("redis.tls_config") {
-	// 	// Jika redis.tls_config bernilai true
-	// 	dbRedis = redis.NewClient(&redis.Options{
-	// 		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
-	// 		Username: viper.GetString("redis.username"),
-	// 		Password: viper.GetString("redis.password"),
-	// 		DB:       viper.GetInt("redis.database"),
-	// 		PoolSize: viper.GetInt("redis.max_connection"),
-	// 		TLSConfig: &tls.Config{
-	// 			InsecureSkipVerify: true,
-	// 		},
-	// 	})
-	// } else {
-	// 	// Jika redis.tls_config bernilai false atau tidak ada
-	// 	dbRedis = redis.NewClient(&redis.Options{
-	// 		Addr:     viper.GetString("redis.host") + ":" + viper.GetString("redis.port"),
-	// 		Username: viper.GetString("redis.username"),
-	// 		Password: viper.GetString("redis.password"),
-	// 		DB:       viper.GetInt("redis.database"),
-	// 		PoolSize: viper.GetInt("redis.max_connection"),
-	// 	})
-	// }
-
-	// log.Info("Redis TLS ", viper.GetBool("redis.tls_config"))
-
-	// _, err = dbRedis.Ping(ctx).Result()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	log.Info("Redis connection established")
 	var grpcPoolProduct, grpcPoolCustomer *grpcpool.Pool
 	productConn := func() (client *grpc.ClientConn, err error) {
 		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.product_service.host"), viper.GetString("grpc.product_service.port"))
@@ -189,26 +155,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	customerConn := func() (client *grpc.ClientConn, err error) {
-		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.customer_service.host"), viper.GetString("grpc.customer_service.port"))
-		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
-
-	grpcPoolCustomer, err = grpcpool.New(customerConn, viper.GetInt("grpc.init"), viper.GetInt("grpc.capacity"), time.Duration(viper.GetInt("grpc.idle_duration"))*time.Second, time.Duration(viper.GetInt("grpc.max_life_duration"))*time.Second)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Register GRPC
-	// repoGRPCAuth := _RepoGRPCAuth.NewGRPCAuthRepository(grpcPoolAuth)
 	repoGRPCProduct := _RepoGRPCPublicAPI.NewGRPCProductRepository(grpcPoolProduct)
 	repoGRPCCustomer := _RepoGRPCPublicAPI.NewGRPCCustomerRepository(grpcPoolCustomer)
-	// Register repository & usecase public API
 
+	// Register repository & usecase public API
 	repoMySQLPublicAPI := _RepoMySQLPublicAPI.NewMySQLPublicAPIRepository(dbConn)
 	repoMySQLAuthorization := _RepoMySQLPublicAPI.NewMySQLAuthorizationRepository(dbConn)
 
