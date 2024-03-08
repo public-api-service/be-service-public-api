@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	_DeliveryHTTP "be-service-public-api/public-api/delivery/http"
@@ -44,6 +45,8 @@ func main() {
 
 	// Config file
 	config.ReadConfig(*configFile)
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "__"))
 
 	// Set log level
 	switch viper.GetString("server.log_level") {
