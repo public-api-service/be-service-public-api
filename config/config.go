@@ -16,7 +16,6 @@ import (
 type Config struct {
 	Server   Server   `yaml:"server"`
 	Database Database `yaml:"database"`
-	Redis    Redis    `yaml:"redis"`
 	GRPC     GRPC     `yaml:"grpc"`
 }
 
@@ -178,16 +177,6 @@ var defaultConfig = &Config{
 		PathMigrate:       "file:../db/migration",
 		DefaultLimitQuery: 10,
 		DefaultPage:       1,
-	},
-
-	Redis: Redis{
-		Host:          "localhost",
-		Port:          "6379",
-		MaxConnection: 80,
-		Username:      "",
-		Password:      "",
-		Database:      0,
-		TlsConfig:     false,
 	},
 
 	GRPC: GRPC{
