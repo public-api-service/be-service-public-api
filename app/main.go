@@ -154,7 +154,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	customerConn := func() (client *grpc.ClientConn, err error) {
+		address := fmt.Sprintf("%s:%s", viper.GetString("grpc.customer_service.host"), viper.GetString("grpc.customer_service.port"))
+		client, err = grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 
+	grpcPoolCustomer, err = grpcpool.New(customerConn, viper.GetInt("grpc.init"), viper.GetInt("grpc.capacity"), time.Duration(viper.GetInt("grpc.idle_duration"))*time.Second, time.Duration(viper.GetInt("grpc.max_life_duration"))*time.Second)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Register GRPC
 	repoGRPCProduct := _RepoGRPCPublicAPI.NewGRPCProductRepository(grpcPoolProduct)
 	repoGRPCCustomer := _RepoGRPCPublicAPI.NewGRPCCustomerRepository(grpcPoolCustomer)

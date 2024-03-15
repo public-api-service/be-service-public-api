@@ -20,7 +20,8 @@ type Config struct {
 }
 
 type GRPC struct {
-	ProductService HostPort `yaml:"product_service"`
+	ProductService  HostPort `yaml:"product_service"`
+	CustomerService HostPort `yaml:"customer_service"`
 }
 
 type HostPort struct {
@@ -183,6 +184,10 @@ var defaultConfig = &Config{
 		ProductService: HostPort{
 			Host: "localhost",
 			Port: "58883",
+		},
+		CustomerService: HostPort{
+			Host: "localhost",
+			Port: "58884",
 		},
 	}}
 

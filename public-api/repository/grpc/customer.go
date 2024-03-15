@@ -104,6 +104,7 @@ func (m *grpcRepositoryCustomer) PostCheckoutPartner(ctx context.Context, req do
 		Discount:         discountStr,
 		Tax:              taxStr,
 		Status:           req.Status,
+		References:       req.References,
 	})
 
 	if err != nil {

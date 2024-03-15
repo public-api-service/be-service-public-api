@@ -26,6 +26,7 @@ message RequestDataCheckout {
   string discount = 14;
   string tax = 15;
   string status = 16;
+  string references  = 17;
 }
 
 message RequestProductIDAndLimit {

@@ -100,6 +100,7 @@ type RequestDataCheckout struct {
 	Discount         float64 `json:"discount"`
 	Tax              float64 `json:"tax"`
 	Status           string  `json:"status"`
+	References       string  `json:"references"`
 	IP               string  `json:"ip"`
 }
 
