@@ -152,6 +152,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 
 	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
 		ProductID: paramIDJoinStr,
+		Status:    "Purchased",
 	})
 
 	response.ActivationAccountNumber = paramKeyNumberStr

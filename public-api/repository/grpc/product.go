@@ -91,7 +91,7 @@ func (m *grpcRepositoryProduct) UpdatedStatusDynamicByKeyNumber(ctx context.Cont
 	client := grpcProduct.NewProductServiceClient(conn)
 	_, err = client.UpdatedStatusDynamicByKeyNumber(ctx, &grpcProduct.UpdateListKeyStatusProductServiceRequest{
 		ListID: request.ProductID,
-		Status: "Invalid",
+		Status: request.Status,
 	})
 
 	if err != nil {

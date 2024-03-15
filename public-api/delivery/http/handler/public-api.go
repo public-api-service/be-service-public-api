@@ -228,7 +228,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		SystemTraceAuditNumber: transaction["systemTraceAuditNumber"].(string),
 		Request:                requestJSON,
 		Response:               responseJSON,
-		Section:                "Digital Account Reverse",
+		Section:                "Digital Account Request",
 		Status:                 "Success",
 	})
 
