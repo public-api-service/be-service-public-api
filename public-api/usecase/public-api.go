@@ -202,7 +202,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		Discount:         float64(*resProduct.Discount),
 		Tax:              resProduct.Tax,
 		Status:           "Blackhawk DAR Request",
-		References:       "Blackhawk",
+		References:       "External",
 	})
 
 	if err != nil {
@@ -322,7 +322,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		Discount:         resCheckout.Discount,
 		Tax:              resCheckout.Tax,
 		Status:           "Blackhawk DAR Reverse",
-		References:       "Blackhawk",
+		References:       "External",
 	})
 
 	if err != nil {
