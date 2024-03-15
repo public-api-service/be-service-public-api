@@ -185,6 +185,27 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	if err != nil {
 		return response, err
 	}
+
+	err = pu.customerGRPCRepo.PostCheckoutPartner(ctx, domain.RequestDataCheckout{
+		Email:            request.AcquiringInstitutionIdentifier,
+		Name:             request.MerchantLocation,
+		ProductSalesID:   productID,
+		QTY:              1,
+		TotalPricing:     int64(resProduct.FinalPrice),
+		PaymentReference: request.RetrievalReferenceNumber,
+		PaymentDomain:    "Blackhawk",
+		ListKey:          paramKeyNumberStr,
+		Invoice:          request.ProcessingCode,
+		TypeDuration:     resProduct.Duration,
+		Pricing:          resProduct.Price,
+		Discount:         float64(*resProduct.Discount),
+		Tax:              resProduct.Tax,
+		Status:           "Blackhawk DAR Request",
+	})
+
+	if err != nil {
+		return response, err
+	}
 	return
 }
 
@@ -278,6 +299,37 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 	if err != nil {
 		return response, err
 	}
+
+	resCheckout, err := pu.customerGRPCRepo.GetCheckoutBySerialNumber(ctx, resDAR.ActivationAccountNumber)
+	if err != nil {
+		return response, err
+	}
+
+	err = pu.customerGRPCRepo.PostCheckoutPartner(ctx, domain.RequestDataCheckout{
+		Email:            request.AcquiringInstitutionIdentifier,
+		Name:             request.MerchantLocation,
+		ProductSalesID:   productID,
+		QTY:              1,
+		TotalPricing:     int64(resCheckout.TotalPricing),
+		PaymentReference: request.RetrievalReferenceNumber,
+		PaymentDomain:    "Blackhawk",
+		ListKey:          resDAR.ActivationAccountNumber,
+		Invoice:          request.ProcessingCode,
+		TypeDuration:     resCheckout.TypeDuration,
+		Pricing:          resCheckout.Pricing,
+		Discount:         resCheckout.Discount,
+		Tax:              resCheckout.Tax,
+		Status:           "Blackhawk DAR Reverse",
+	})
+
+	if err != nil {
+		return response, err
+	}
+
+	_, err = pu.productGRPCRepo.UpdatedStatusDynamicByKeyNumber(ctx, domain.RequestUpdateKey{
+		ProductID: resDAR.ActivationAccountNumber,
+		Status:    "Inactive",
+	})
 
 	return
 }

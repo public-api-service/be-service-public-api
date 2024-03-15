@@ -37,6 +37,11 @@ message ListKeyProductByProductIDAndLimitServiceRequest {
   string limit = 2;
 }
 
+message ProductIDAndKeyAvailableServiceRequest {
+  int64 id_product = 1;
+  string status = 2;
+}
+
 message ProductIDRequestServiceRequest{
   int64 id = 1;
 }
@@ -56,6 +61,21 @@ message DetailProductServiceResponse{
   string final_price = 12;
   string dtm_crt = 13;
   string dtm_up = 14;
+}
+
+message DetailProductAndKeyServiceResponse{
+  int64 id = 1;
+  int64 product_id = 2;
+  string name = 3;
+  string sku = 4;
+  string tipe = 5;
+  string duration = 6;
+  string price = 7;
+  string discount = 8;
+  string tax = 9;
+  string final_price = 10;
+  int64 key_id = 11;
+  string number_keys = 12;
 }
 
 message RequestAdditionalData {
@@ -110,7 +130,10 @@ message GetAllProductResponse {
 service ProductService {
   rpc GetListKeyProduct(ListKeyProductServiceRequest) returns (ListKeyBulkResponse) {};
   rpc UpdateListKeyStatusProduct(UpdateListKeyStatusProductServiceRequest) returns (UpdateListKeyStatusProductServiceResponse) {};
+  rpc UpdatedStatusDynamicByKeyNumber(UpdateListKeyStatusProductServiceRequest) returns (UpdateListKeyStatusProductServiceResponse) {};
+  rpc UpdateKeyStatusBookingByLicenseKey(UpdateListKeyStatusProductServiceRequest) returns (UpdateListKeyStatusProductServiceResponse) {};
   rpc GetListKeyProductByProductIDAndLimit(ListKeyProductByProductIDAndLimitServiceRequest) returns (ListKeyBulkResponse) {};
   rpc GetProductByID(ProductIDRequestServiceRequest) returns (DetailProductServiceResponse) {};
   rpc GetAllProduct(RequestAdditionalData) returns (GetAllProductResponse);
+  rpc GetProductIDAndKeyAvailable(ProductIDAndKeyAvailableServiceRequest) returns (DetailProductAndKeyServiceResponse);
 }

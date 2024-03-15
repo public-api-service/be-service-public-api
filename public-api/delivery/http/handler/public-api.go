@@ -253,6 +253,10 @@ func (ph *PublicHandler) CheckStok(c *fiber.Ctx) (err error) {
 // }
 
 func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
+	ip := c.Get(fiber.HeaderXForwardedFor)
+	if ip == "" {
+		ip = c.IP()
+	}
 	var request map[string]interface{}
 	if err := c.BodyParser(&request); err != nil {
 		log.Println(err)
@@ -289,6 +293,7 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 		TransactionUniqueId:            additionalTxnFields["transactionUniqueId"].(string),
 		CorrelatedTransactionUniqueId:  additionalTxnFields["correlatedTransactionUniqueId"].(string),
 		Status:                         "Digital Account Request",
+		IP:                             ip,
 	})
 
 	details["statusCode"] = "00"

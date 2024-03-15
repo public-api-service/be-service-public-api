@@ -81,6 +81,25 @@ func (m *grpcRepositoryProduct) UpdateListKeyStatusProduct(ctx context.Context, 
 	return
 }
 
+func (m *grpcRepositoryProduct) UpdatedStatusDynamicByKeyNumber(ctx context.Context, request domain.RequestUpdateKey) (response string, err error) {
+	conn, err := m.Pool.Get(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	client := grpcProduct.NewProductServiceClient(conn)
+	_, err = client.UpdatedStatusDynamicByKeyNumber(ctx, &grpcProduct.UpdateListKeyStatusProductServiceRequest{
+		ListID: request.ProductID,
+		Status: "Invalid",
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return
+}
+
 func (m *grpcRepositoryProduct) GetProductByID(ctx context.Context, request int64) (response domain.ProductResponseDTO, err error) {
 	conn, err := m.Pool.Get(ctx)
 	if err != nil {

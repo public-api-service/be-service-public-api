@@ -8,6 +8,7 @@ package customer
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,6 +25,8 @@ const _ = grpc.SupportPackageIsVersion7
 type CustomerUseCaseServiceClient interface {
 	PostCustomer(ctx context.Context, in *RequestDataCustomer, opts ...grpc.CallOption) (*EmptyResponse, error)
 	PostCheckout(ctx context.Context, in *RequestDataCheckout, opts ...grpc.CallOption) (*EmptyResponse, error)
+	PartnerCheckout(ctx context.Context, in *RequestDataCheckout, opts ...grpc.CallOption) (*EmptyResponse, error)
+	GetCheckoutByKeyNumber(ctx context.Context, in *RequestProductSerialNumber, opts ...grpc.CallOption) (*ResponseDataCheckout, error)
 	CheckStok(ctx context.Context, in *RequestCheckStok, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
@@ -53,6 +56,24 @@ func (c *customerUseCaseServiceClient) PostCheckout(ctx context.Context, in *Req
 	return out, nil
 }
 
+func (c *customerUseCaseServiceClient) PartnerCheckout(ctx context.Context, in *RequestDataCheckout, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, "/customer.CustomerUseCaseService/PartnerCheckout", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *customerUseCaseServiceClient) GetCheckoutByKeyNumber(ctx context.Context, in *RequestProductSerialNumber, opts ...grpc.CallOption) (*ResponseDataCheckout, error) {
+	out := new(ResponseDataCheckout)
+	err := c.cc.Invoke(ctx, "/customer.CustomerUseCaseService/GetCheckoutByKeyNumber", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *customerUseCaseServiceClient) CheckStok(ctx context.Context, in *RequestCheckStok, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	out := new(EmptyResponse)
 	err := c.cc.Invoke(ctx, "/customer.CustomerUseCaseService/CheckStok", in, out, opts...)
@@ -68,6 +89,8 @@ func (c *customerUseCaseServiceClient) CheckStok(ctx context.Context, in *Reques
 type CustomerUseCaseServiceServer interface {
 	PostCustomer(context.Context, *RequestDataCustomer) (*EmptyResponse, error)
 	PostCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error)
+	PartnerCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error)
+	GetCheckoutByKeyNumber(context.Context, *RequestProductSerialNumber) (*ResponseDataCheckout, error)
 	CheckStok(context.Context, *RequestCheckStok) (*EmptyResponse, error)
 	mustEmbedUnimplementedCustomerUseCaseServiceServer()
 }
@@ -81,6 +104,12 @@ func (UnimplementedCustomerUseCaseServiceServer) PostCustomer(context.Context, *
 }
 func (UnimplementedCustomerUseCaseServiceServer) PostCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostCheckout not implemented")
+}
+func (UnimplementedCustomerUseCaseServiceServer) PartnerCheckout(context.Context, *RequestDataCheckout) (*EmptyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PartnerCheckout not implemented")
+}
+func (UnimplementedCustomerUseCaseServiceServer) GetCheckoutByKeyNumber(context.Context, *RequestProductSerialNumber) (*ResponseDataCheckout, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCheckoutByKeyNumber not implemented")
 }
 func (UnimplementedCustomerUseCaseServiceServer) CheckStok(context.Context, *RequestCheckStok) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckStok not implemented")
@@ -135,6 +164,42 @@ func _CustomerUseCaseService_PostCheckout_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CustomerUseCaseService_PartnerCheckout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestDataCheckout)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CustomerUseCaseServiceServer).PartnerCheckout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/customer.CustomerUseCaseService/PartnerCheckout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CustomerUseCaseServiceServer).PartnerCheckout(ctx, req.(*RequestDataCheckout))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CustomerUseCaseService_GetCheckoutByKeyNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestProductSerialNumber)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CustomerUseCaseServiceServer).GetCheckoutByKeyNumber(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/customer.CustomerUseCaseService/GetCheckoutByKeyNumber",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CustomerUseCaseServiceServer).GetCheckoutByKeyNumber(ctx, req.(*RequestProductSerialNumber))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CustomerUseCaseService_CheckStok_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RequestCheckStok)
 	if err := dec(in); err != nil {
@@ -167,6 +232,14 @@ var CustomerUseCaseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PostCheckout",
 			Handler:    _CustomerUseCaseService_PostCheckout_Handler,
+		},
+		{
+			MethodName: "PartnerCheckout",
+			Handler:    _CustomerUseCaseService_PartnerCheckout_Handler,
+		},
+		{
+			MethodName: "GetCheckoutByKeyNumber",
+			Handler:    _CustomerUseCaseService_GetCheckoutByKeyNumber_Handler,
 		},
 		{
 			MethodName: "CheckStok",

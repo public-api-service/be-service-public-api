@@ -13,9 +13,9 @@ message RequestDataCheckout {
   string email = 1;
   string name = 2;
   string phone_number = 3;
-  int32 product_sales_id = 4;
-  int32 qty = 5;
-  int32 total_pricing = 6;
+  int64 product_sales_id = 4;
+  int64 qty = 5;
+  int64 total_pricing = 6;
   string payment_reference = 7;
   string payment_domain = 8;
   int64 customer_id = 9;
@@ -25,6 +25,7 @@ message RequestDataCheckout {
   string pricing = 13;
   string discount = 14;
   string tax = 15;
+  string status = 16;
 }
 
 message RequestProductIDAndLimit {
@@ -36,9 +37,34 @@ message RequestCheckStok {
   int32 product_id = 1;
 }
 
+message RequestProductSerialNumber {
+  string serial_number = 1;
+}
+
+message ResponseDataCheckout {
+  string email = 1;
+  string name = 2;
+  string phone_number = 3;
+  int64 product_sales_id = 4;
+  int64 qty = 5;
+  int64 total_pricing = 6;
+  string payment_reference = 7;
+  string payment_domain = 8;
+  int64 customer_id = 9;
+  string list_key = 10;
+  string invoice = 11;
+  string type_duration = 12;
+  string pricing = 13;
+  string discount = 14;
+  string tax = 15;
+  string status = 16;
+}
+
 service CustomerUseCaseService {
   rpc PostCustomer(RequestDataCustomer) returns (EmptyResponse);
   rpc PostCheckout(RequestDataCheckout) returns (EmptyResponse);
+  rpc PartnerCheckout(RequestDataCheckout) returns (EmptyResponse);
+  rpc GetCheckoutByKeyNumber(RequestProductSerialNumber) returns (ResponseDataCheckout);
   rpc CheckStok(RequestCheckStok) returns (EmptyResponse);
 }
 

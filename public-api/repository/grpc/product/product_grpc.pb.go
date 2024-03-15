@@ -8,6 +8,7 @@ package product
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,9 +25,12 @@ const _ = grpc.SupportPackageIsVersion7
 type ProductServiceClient interface {
 	GetListKeyProduct(ctx context.Context, in *ListKeyProductServiceRequest, opts ...grpc.CallOption) (*ListKeyBulkResponse, error)
 	UpdateListKeyStatusProduct(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error)
+	UpdatedStatusDynamicByKeyNumber(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error)
+	UpdateKeyStatusBookingByLicenseKey(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error)
 	GetListKeyProductByProductIDAndLimit(ctx context.Context, in *ListKeyProductByProductIDAndLimitServiceRequest, opts ...grpc.CallOption) (*ListKeyBulkResponse, error)
 	GetProductByID(ctx context.Context, in *ProductIDRequestServiceRequest, opts ...grpc.CallOption) (*DetailProductServiceResponse, error)
 	GetAllProduct(ctx context.Context, in *RequestAdditionalData, opts ...grpc.CallOption) (*GetAllProductResponse, error)
+	GetProductIDAndKeyAvailable(ctx context.Context, in *ProductIDAndKeyAvailableServiceRequest, opts ...grpc.CallOption) (*DetailProductAndKeyServiceResponse, error)
 }
 
 type productServiceClient struct {
@@ -49,6 +53,24 @@ func (c *productServiceClient) GetListKeyProduct(ctx context.Context, in *ListKe
 func (c *productServiceClient) UpdateListKeyStatusProduct(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error) {
 	out := new(UpdateListKeyStatusProductServiceResponse)
 	err := c.cc.Invoke(ctx, "/product.ProductService/UpdateListKeyStatusProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) UpdatedStatusDynamicByKeyNumber(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error) {
+	out := new(UpdateListKeyStatusProductServiceResponse)
+	err := c.cc.Invoke(ctx, "/product.ProductService/UpdatedStatusDynamicByKeyNumber", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) UpdateKeyStatusBookingByLicenseKey(ctx context.Context, in *UpdateListKeyStatusProductServiceRequest, opts ...grpc.CallOption) (*UpdateListKeyStatusProductServiceResponse, error) {
+	out := new(UpdateListKeyStatusProductServiceResponse)
+	err := c.cc.Invoke(ctx, "/product.ProductService/UpdateKeyStatusBookingByLicenseKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,15 +104,27 @@ func (c *productServiceClient) GetAllProduct(ctx context.Context, in *RequestAdd
 	return out, nil
 }
 
+func (c *productServiceClient) GetProductIDAndKeyAvailable(ctx context.Context, in *ProductIDAndKeyAvailableServiceRequest, opts ...grpc.CallOption) (*DetailProductAndKeyServiceResponse, error) {
+	out := new(DetailProductAndKeyServiceResponse)
+	err := c.cc.Invoke(ctx, "/product.ProductService/GetProductIDAndKeyAvailable", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility
 type ProductServiceServer interface {
 	GetListKeyProduct(context.Context, *ListKeyProductServiceRequest) (*ListKeyBulkResponse, error)
 	UpdateListKeyStatusProduct(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error)
+	UpdatedStatusDynamicByKeyNumber(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error)
+	UpdateKeyStatusBookingByLicenseKey(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error)
 	GetListKeyProductByProductIDAndLimit(context.Context, *ListKeyProductByProductIDAndLimitServiceRequest) (*ListKeyBulkResponse, error)
 	GetProductByID(context.Context, *ProductIDRequestServiceRequest) (*DetailProductServiceResponse, error)
 	GetAllProduct(context.Context, *RequestAdditionalData) (*GetAllProductResponse, error)
+	GetProductIDAndKeyAvailable(context.Context, *ProductIDAndKeyAvailableServiceRequest) (*DetailProductAndKeyServiceResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -104,6 +138,12 @@ func (UnimplementedProductServiceServer) GetListKeyProduct(context.Context, *Lis
 func (UnimplementedProductServiceServer) UpdateListKeyStatusProduct(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateListKeyStatusProduct not implemented")
 }
+func (UnimplementedProductServiceServer) UpdatedStatusDynamicByKeyNumber(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatedStatusDynamicByKeyNumber not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateKeyStatusBookingByLicenseKey(context.Context, *UpdateListKeyStatusProductServiceRequest) (*UpdateListKeyStatusProductServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateKeyStatusBookingByLicenseKey not implemented")
+}
 func (UnimplementedProductServiceServer) GetListKeyProductByProductIDAndLimit(context.Context, *ListKeyProductByProductIDAndLimitServiceRequest) (*ListKeyBulkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetListKeyProductByProductIDAndLimit not implemented")
 }
@@ -112,6 +152,9 @@ func (UnimplementedProductServiceServer) GetProductByID(context.Context, *Produc
 }
 func (UnimplementedProductServiceServer) GetAllProduct(context.Context, *RequestAdditionalData) (*GetAllProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllProduct not implemented")
+}
+func (UnimplementedProductServiceServer) GetProductIDAndKeyAvailable(context.Context, *ProductIDAndKeyAvailableServiceRequest) (*DetailProductAndKeyServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductIDAndKeyAvailable not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 
@@ -158,6 +201,42 @@ func _ProductService_UpdateListKeyStatusProduct_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProductServiceServer).UpdateListKeyStatusProduct(ctx, req.(*UpdateListKeyStatusProductServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdatedStatusDynamicByKeyNumber_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateListKeyStatusProductServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdatedStatusDynamicByKeyNumber(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductService/UpdatedStatusDynamicByKeyNumber",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdatedStatusDynamicByKeyNumber(ctx, req.(*UpdateListKeyStatusProductServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateKeyStatusBookingByLicenseKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateListKeyStatusProductServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateKeyStatusBookingByLicenseKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductService/UpdateKeyStatusBookingByLicenseKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateKeyStatusBookingByLicenseKey(ctx, req.(*UpdateListKeyStatusProductServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,6 +295,24 @@ func _ProductService_GetAllProduct_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_GetProductIDAndKeyAvailable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProductIDAndKeyAvailableServiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).GetProductIDAndKeyAvailable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductService/GetProductIDAndKeyAvailable",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).GetProductIDAndKeyAvailable(ctx, req.(*ProductIDAndKeyAvailableServiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -232,6 +329,14 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_UpdateListKeyStatusProduct_Handler,
 		},
 		{
+			MethodName: "UpdatedStatusDynamicByKeyNumber",
+			Handler:    _ProductService_UpdatedStatusDynamicByKeyNumber_Handler,
+		},
+		{
+			MethodName: "UpdateKeyStatusBookingByLicenseKey",
+			Handler:    _ProductService_UpdateKeyStatusBookingByLicenseKey_Handler,
+		},
+		{
 			MethodName: "GetListKeyProductByProductIDAndLimit",
 			Handler:    _ProductService_GetListKeyProductByProductIDAndLimit_Handler,
 		},
@@ -242,6 +347,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllProduct",
 			Handler:    _ProductService_GetAllProduct_Handler,
+		},
+		{
+			MethodName: "GetProductIDAndKeyAvailable",
+			Handler:    _ProductService_GetProductIDAndKeyAvailable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
