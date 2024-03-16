@@ -321,7 +321,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		Pricing:          resCheckout.Pricing,
 		Discount:         resCheckout.Discount,
 		Tax:              resCheckout.Tax,
-		Status:           "Blackhawk DAR Reverse",
+		Status:           "Blackhawk DAR Reversal",
 		References:       "External",
 	})
 
