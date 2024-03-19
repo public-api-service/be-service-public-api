@@ -331,7 +331,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 
 	_, err = pu.productGRPCRepo.UpdatedStatusDynamicByKeyNumber(ctx, domain.RequestUpdateKey{
 		ProductID: resDAR.ActivationAccountNumber,
-		Status:    "Inactive",
+		Status:    "Reversal",
 	})
 
 	return
