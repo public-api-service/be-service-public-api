@@ -67,43 +67,15 @@ func (pu *publicAPIUseCase) CheckStok(ctx context.Context, id int32) (err error)
 }
 
 func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.TransactionDTO) (response domain.AdditionalFields, err error) {
+	// checkUPCAggrement := helper.CheckDataAvailabilityUPC(request.ProductID)
+	// if !checkUPCAggrement {
+	// 	log.Info("UPC Request is", checkUPCAggrement)
+	// }
+
 	_, err = helper.IsValidCurrencyCode(request.TransactionCurrencyCode)
 	if err != nil {
 		return
 	}
-
-	// amount, err := helper.IsValidAmount(request.TransactionAmount, request.TransactionCurrencyCode)
-	// if err != nil {
-	// 	return
-	// }
-
-	lastID, err := pu.publicAPIMySQLRepo.LastTransaction(ctx)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	lastIDAI := lastID + 1
-
-	var lastIDStr string
-
-	if lastID >= 1000 {
-		lastIDStr = "0" + strconv.Itoa(int(lastIDAI))
-	}
-
-	if lastID > 100 {
-		lastIDStr = "0" + strconv.Itoa(int(lastIDAI))
-	}
-
-	if lastID >= 10 {
-		lastIDStr = "00" + strconv.Itoa(int(lastIDAI))
-	}
-
-	if lastID < 10 {
-		lastIDStr = "000" + strconv.Itoa(int(lastIDAI))
-	}
-
-	response.RedemptionPin = lastIDStr
 
 	productID, err := strconv.ParseInt(request.ProductID, 10, 64)
 	if err != nil {
@@ -111,8 +83,15 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		log.Error("Error converting ProductID:", err)
 		return response, err
 	}
+
 	resProduct, err := pu.productGRPCRepo.GetProductByID(ctx, productID)
 	if err != nil {
+		// if err.Error() == "Out of stok" {
+		// 	if !checkUPCAggrement {
+		// 		err = errors.New("Out of stok with UPC not aggrement")
+		// 		return response, err
+		// 	}
+		// }
 		return response, err
 	}
 
@@ -150,14 +129,25 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		paramKeyNumberStr = paramKeyNumberStr[:len(paramKeyNumberStr)-1]
 	}
 
-	_, err = pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
+	responseKey, err := pu.productGRPCRepo.UpdateListKeyStatusProduct(ctx, domain.RequestUpdateKey{
 		ProductID: paramIDJoinStr,
 		Status:    "Purchased",
 	})
 
+	if err != nil {
+		log.Error("Error while update list key status ", err)
+	}
+
+	log.Info("Update list key status product :", responseKey)
+
 	response.ActivationAccountNumber = paramKeyNumberStr
 	response.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
-	response.RedemptionAccountNumber = resProduct.SKU
+
+	ulidString, err := helper.GenerateRedemtionAccountNumber()
+	if err != nil {
+		return response, err
+	}
+	response.RedemptionAccountNumber = ulidString
 
 	parts := strings.Fields(resProduct.Duration)
 	number, _ := strconv.Atoi(parts[0])
@@ -179,7 +169,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 
 	request.ActivationAccountNumber = paramKeyNumberStr
 	request.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
-	request.RedemptionAccountNumber = resProduct.SKU
+	request.RedemptionAccountNumber = response.RedemptionAccountNumber
 	request.ExpiryDate = expired.Format("060102")
 
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)

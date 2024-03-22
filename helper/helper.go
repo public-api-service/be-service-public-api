@@ -12,6 +12,9 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/oklog/ulid"
 
 	"net/http"
 	nethttp "net/http"
@@ -228,3 +231,21 @@ func ValidateLocalTransactionDate(localTransactionDate string) bool {
 
 	return true
 }
+
+func GenerateRedemtionAccountNumber() (string, error) {
+	t := time.Now()
+	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
+	ulid := ulid.MustNew(ulid.Timestamp(t), entropy)
+	ulidString := ulid.String()
+	return ulidString, nil
+}
+
+// func CheckDataAvailabilityUPC(input string) bool {
+// 	dataAggrementUPC := viper.GetStringSlice("aggrement_upc")
+// 	for _, value := range dataAggrementUPC {
+// 		if value == input {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

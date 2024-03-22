@@ -178,6 +178,12 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	responseJSON := make(map[string]interface{})
 	if err != nil {
 		transaction["responseCode"] = "14"
+		// if err.Error() == "Out of stok with UPC not aggrement" {
+		// 	transaction["responseCode"] = "14"
+		// }
+		// if err.Error() == "Out of stok" {
+		// 	transaction["responseCode"] = "08"
+		// }
 		if err.Error() == "Invalid amount" {
 			transaction["responseCode"] = "13"
 		}
@@ -220,7 +226,6 @@ func (ph *PublicHandler) AccountRequest(c *fiber.Ctx) (err error) {
 	additionalTxnFields["activationAccountNumber"] = res.ActivationAccountNumber
 	additionalTxnFields["balanceAmount"] = "C" + transaction["transactionAmount"].(string)
 	additionalTxnFields["redemptionAccountNumber"] = res.RedemptionAccountNumber
-	additionalTxnFields["redemptionPin"] = res.RedemptionPin
 	additionalTxnFields["expiryDate"] = res.ExpiryDate
 
 	responseJSON["response"] = request["request"]

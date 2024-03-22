@@ -116,6 +116,11 @@ func (m *grpcRepositoryProduct) GetProductByID(ctx context.Context, request int6
 		return domain.ProductResponseDTO{}, err
 	}
 
+	if res.Stok <= 0 {
+		err = errors.New("Out of stok")
+		return response, err
+	}
+
 	idStr := strconv.Itoa(int(res.Id))
 	price, err := strconv.ParseFloat(res.Price, 64)
 	if err != nil {
