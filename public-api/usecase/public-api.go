@@ -167,9 +167,9 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		return response, err
 	}
 
-	request.ActivationAccountNumber = paramKeyNumberStr
+	request.ActivationAccountNumber = response.RedemptionAccountNumber
 	request.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
-	request.RedemptionAccountNumber = response.RedemptionAccountNumber
+	request.RedemptionAccountNumber = paramKeyNumberStr
 	request.ExpiryDate = expired.Format("060102")
 
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
