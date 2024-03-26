@@ -147,7 +147,7 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 	if err != nil {
 		return response, err
 	}
-	response.RedemptionAccountNumber = ulidString
+	redemptionAccountNumber := ulidString
 
 	parts := strings.Fields(resProduct.Duration)
 	number, _ := strconv.Atoi(parts[0])
@@ -167,10 +167,12 @@ func (pu *publicAPIUseCase) AccountRequest(ctx context.Context, request domain.T
 		return response, err
 	}
 
-	request.ActivationAccountNumber = response.RedemptionAccountNumber
+	request.ActivationAccountNumber = redemptionAccountNumber
 	request.BalanceAmount = strconv.Itoa(int(resProduct.FinalPrice))
 	request.RedemptionAccountNumber = paramKeyNumberStr
 	request.ExpiryDate = expired.Format("060102")
+	response.ActivationAccountNumber = redemptionAccountNumber
+	response.RedemptionAccountNumber = paramKeyNumberStr
 
 	err = pu.publicAPIMySQLRepo.InsertOriginalTransaction(ctx, request)
 	if err != nil {
@@ -305,7 +307,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		TotalPricing:     int64(resCheckout.TotalPricing),
 		PaymentReference: request.RetrievalReferenceNumber,
 		PaymentDomain:    "Blackhawk",
-		ListKey:          resDAR.ActivationAccountNumber,
+		ListKey:          resDAR.RedemptionAccountNumber,
 		Invoice:          request.ProcessingCode,
 		TypeDuration:     resCheckout.TypeDuration,
 		Pricing:          resCheckout.Pricing,
