@@ -294,7 +294,7 @@ func (pu *publicAPIUseCase) AccountReverse(ctx context.Context, request domain.T
 		return response, err
 	}
 
-	resCheckout, err := pu.customerGRPCRepo.GetCheckoutBySerialNumber(ctx, resDAR.ActivationAccountNumber)
+	resCheckout, err := pu.customerGRPCRepo.GetCheckoutBySerialNumber(ctx, resDAR.RedemptionAccountNumber)
 	if err != nil {
 		return response, err
 	}
